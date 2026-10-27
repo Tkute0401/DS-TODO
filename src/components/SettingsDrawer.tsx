@@ -210,10 +210,16 @@ export function SettingsDrawer({
       >
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.75rem' }}>
-          <h2 style={{ fontSize: '1.15rem', fontWeight: 750, display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-main)' }}>
-            <UserIcon size={18} color="var(--accent-theme)" />
-            <span>Settings &amp; Workforce</span>
-          </h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+            <img
+              src="/ds-icon.png"
+              alt="DS"
+              style={{ height: '22px', width: 'auto', objectFit: 'contain' }}
+            />
+            <h2 style={{ fontSize: '1.05rem', fontWeight: 750, color: 'var(--text-main)', margin: 0 }}>
+              Digital Supremacy · Workforce
+            </h2>
+          </div>
           <button onClick={onClose} style={{ minHeight: '32px', minWidth: '32px', padding: 0, color: 'var(--text-muted)', borderRadius: '10px' }} aria-label="Close settings drawer">
             <X size={18} />
           </button>

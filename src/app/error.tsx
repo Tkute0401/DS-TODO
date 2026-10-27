@@ -11,7 +11,7 @@ interface ErrorProps {
 
 export default function ErrorBoundary({ error, reset }: ErrorProps) {
   useEffect(() => {
-    console.error('DynoTodo caught unhandled client error:', error);
+    console.error('Digital Supremacy OS caught unhandled client error:', error);
   }, [error]);
 
   return (
@@ -41,7 +41,12 @@ export default function ErrorBoundary({ error, reset }: ErrorProps) {
           gap: '1.25rem',
         }}
       >
-        <DynoMascot dynamicMood="blocked" size="lg" />
+        <img
+          src="/ds-logo.png"
+          alt="Digital Supremacy"
+          style={{ height: '30px', width: 'auto', objectFit: 'contain' }}
+        />
+        <DynoMascot dynamicMood="blocked" size="md" />
 
         <div>
           <div

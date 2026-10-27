@@ -31,7 +31,12 @@ export default function NotFound() {
           gap: '1.25rem',
         }}
       >
-        <DynoMascot dynamicMood="coffee" size="lg" />
+        <img
+          src="/ds-logo.png"
+          alt="Digital Supremacy"
+          style={{ height: '30px', width: 'auto', objectFit: 'contain' }}
+        />
+        <DynoMascot dynamicMood="coffee" size="md" />
 
         <div>
           <div

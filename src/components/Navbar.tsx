@@ -114,14 +114,26 @@ export function Navbar({
       }}>
         
         {/* Brand & Animated Mascot */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-          <DynoMascot dynamicMood={mascotMood} size="md" interactive={true} showSelectorPill={true} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <img
+            src="/ds-logo.png"
+            alt="Digital Supremacy"
+            style={{
+              height: '24px',
+              width: 'auto',
+              objectFit: 'contain',
+              display: 'block',
+            }}
+          />
+          <div style={{ height: '22px', width: '1px', background: 'var(--border-subtle)' }} />
+          <DynoMascot dynamicMood={mascotMood} size="sm" interactive={true} showSelectorPill={true} />
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-              <span style={{ fontWeight: 800, fontSize: '0.98rem', letterSpacing: '-0.02em', color: 'var(--text-main)' }}>DYNOTODO</span>
-              <span className="pill-badge" style={{ fontSize: '0.65rem', padding: '0.1rem 0.45rem' }}>PASTEL CLAY</span>
+              <span className="pill-badge" style={{ fontSize: '0.62rem', padding: '0.1rem 0.45rem', fontWeight: 750, color: 'var(--accent-theme)' }}>
+                PERFORMANCE OS
+              </span>
             </div>
-            <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', letterSpacing: '-0.01em', marginTop: '1px' }}>
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', letterSpacing: '-0.01em', marginTop: '1px' }}>
               {user.name} &bull; <span style={{ color: 'var(--accent-theme)', fontWeight: 600 }}>{user.designation}</span>
             </div>
           </div>

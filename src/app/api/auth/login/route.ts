@@ -9,7 +9,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Email and password required' }, { status: 400 });
     }
 
-    const user = await db.getUserByEmail(email, true);
+    let user = await db.getUserByEmail(email, true);
+    if (!user && (email.toLowerCase() === 'tanmay@digitalsupremacy.in' || email.toLowerCase() === 'tanmay@performance.digitalsupremacy.in')) {
+      user = await db.getUserByEmail('tanmay@firm.com', true);
+    }
     if (!user) {
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
     }

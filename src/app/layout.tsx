@@ -21,13 +21,22 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "DYNOTODO | Dynamic Workforce Accountability",
-  description: "High-velocity dynamic todo list and team accountability engine for agile firms.",
+  title: "Digital Supremacy | Performance OS",
+  description: "High-velocity deliverables and dynamic workforce accountability engine for Digital Supremacy.",
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/ds-icon.png", type: "image/png", sizes: "333x294" },
+    ],
+    apple: [
+      { url: "/ds-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "DYNOTODO",
+    title: "Digital Supremacy",
   },
 };
 
@@ -39,8 +48,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <head>
-        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/icon.svg" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/ds-icon.png" type="image/png" sizes="333x294" />
+        <link rel="apple-touch-icon" href="/ds-icon.png" />
         <script
           dangerouslySetInnerHTML={{
             __html: `

@@ -97,31 +97,43 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
           zIndex: 1,
         }}
       >
-        {/* Header: Mascot & Title */}
+        {/* Header: Official Digital Supremacy Logo & Title */}
         <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.85rem' }}>
-            <DynoMascot dynamicMood="coffee" size="lg" interactive={true} />
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.15rem' }}>
+            <img
+              src="/ds-logo.png"
+              alt="Digital Supremacy"
+              style={{
+                height: '36px',
+                width: 'auto',
+                objectFit: 'contain',
+                filter: 'drop-shadow(0 4px 12px rgba(0, 240, 255, 0.15))',
+              }}
+            />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.75rem' }}>
+            <DynoMascot dynamicMood="coffee" size="md" interactive={true} />
           </div>
           <h1
             style={{
-              fontSize: '1.5rem',
+              fontSize: '1.35rem',
               fontWeight: 850,
-              letterSpacing: '-0.03em',
+              letterSpacing: '-0.02em',
               color: 'var(--text-main)',
               margin: '0 0 0.35rem 0',
             }}
           >
-            DYNOTODO
+            Performance Operating System
           </h1>
           <p
             style={{
-              fontSize: '0.85rem',
+              fontSize: '0.84rem',
               color: 'var(--text-muted)',
               margin: 0,
               lineHeight: 1.45,
             }}
           >
-            Workforce Accountability &amp; Deliverable Engine
+            Dynamic Deliverables &amp; Workforce Accountability Engine
           </p>
           <div
             style={{
@@ -139,7 +151,7 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
             }}
           >
             <Shield size={12} />
-            <span>Employee &amp; Leadership Sign In</span>
+            <span>Digital Supremacy Internal Workspace</span>
           </div>
         </div>
 
@@ -344,7 +356,7 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
             <button
               type="button"
-              onClick={() => handleQuickDemo('tanmay@firm.com', 'password123')}
+              onClick={() => handleQuickDemo('tanmay@digitalsupremacy.in', 'password123')}
               style={{
                 width: '100%',
                 display: 'flex',
@@ -363,10 +375,10 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
               <div>
                 <strong>Tanmay Kute</strong>
                 <span style={{ color: 'var(--accent-theme)', marginLeft: '0.4rem', fontSize: '0.72rem' }}>
-                  (Admin / Leadership)
+                  (Admin · Digital Supremacy)
                 </span>
               </div>
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>tanmay@firm.com</span>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>tanmay@digitalsupremacy.in</span>
             </button>
           </div>
         </div>

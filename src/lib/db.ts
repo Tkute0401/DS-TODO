@@ -9,7 +9,7 @@ const SEED_USERS: (User & { password_hash: string })[] = [
     password_hash: 'password123',
     name: 'Tanmay Kute',
     role: 'ADMIN',
-    designation: 'Managing Director & Administrator',
+    designation: 'Managing Director · Digital Supremacy',
     phone: '+919876543210',
     avatar_url: '',
     is_active: true,
