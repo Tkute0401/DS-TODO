@@ -75,10 +75,12 @@ export function BlockerModal({
       }}
     >
       <div
-        className="glass-panel"
+        className="glass-panel modal-responsive"
         style={{
           width: '100%',
           maxWidth: '460px',
+          maxHeight: '90vh',
+          overflowY: 'auto',
           padding: '1.75rem',
           background: 'var(--bg-card)',
           borderRadius: '24px',

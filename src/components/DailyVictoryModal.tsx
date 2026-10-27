@@ -47,10 +47,12 @@ export function DailyVictoryModal({ streak, completedCount, soundEnabled, onClos
       }}
     >
       <div
-        className="glass-panel"
+        className="glass-panel modal-responsive"
         style={{
           width: '100%',
           maxWidth: '440px',
+          maxHeight: '90vh',
+          overflowY: 'auto',
           padding: '2.25rem 1.75rem',
           textAlign: 'center',
           background: 'radial-gradient(ellipse at top, rgba(245, 158, 11, 0.15) 0%, rgba(244, 63, 94, 0.08) 50%, var(--bg-card) 100%)',

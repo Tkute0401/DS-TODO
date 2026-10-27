@@ -145,21 +145,15 @@ export function TaskCard({
 
   return (
     <div
-      className={`glass-panel card-interactive ${statusClass}`}
+      className={`glass-panel card-interactive task-card-item ${statusClass}`}
       style={{
-        padding: '0.95rem 1.25rem',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '0.75rem',
         width: '100%',
         borderRadius: '18px',
         border: '1.5px solid var(--border-subtle)',
       }}
     >
       {/* Left side: Checkbox + Title + Meta info */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.85rem', flex: 1, minWidth: '260px' }}>
+      <div className="task-card-main" style={{ alignItems: 'flex-start' }}>
         
         {/* Clay Tactile Checkbox Button */}
         <button
@@ -631,7 +625,7 @@ export function TaskCard({
       </div>
 
       {/* Right side: Action Triggers */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+      <div className="task-card-actions">
         
         {/* If TODO -> Start In Progress */}
         {task.status === 'TODO' && (

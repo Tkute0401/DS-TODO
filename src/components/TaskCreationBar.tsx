@@ -113,7 +113,7 @@ export function TaskCreationBar({
           }}
         />
 
-        <kbd>↵ Enter</kbd>
+        <kbd className="hide-on-compact">↵ Enter</kbd>
       </div>
 
       {/* 2. Bottom Tier: Attribute Chips & Submit Button */}
@@ -206,10 +206,10 @@ export function TaskCreationBar({
         <button
           type="submit"
           disabled={!title.trim() || isSubmitting}
-          className={title.trim() ? 'btn-accent' : ''}
+          className={`task-create-submit ${title.trim() ? 'btn-accent' : ''}`}
           style={{
             fontSize: '0.84rem',
-            padding: '0.4rem 1.1rem',
+            padding: '0.45rem 1.1rem',
             minHeight: '36px',
             borderRadius: '12px',
           }}

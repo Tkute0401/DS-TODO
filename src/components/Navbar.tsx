@@ -16,7 +16,9 @@ import {
   LogOut, 
   Settings,
   Palette,
-  Download
+  Download,
+  Menu,
+  X
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -65,7 +67,20 @@ export function Navbar({
 }: NavbarProps) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showMobileDrawer, setShowMobileDrawer] = useState(false);
   const unreadCount = notifications.filter((n) => !n.is_read).length;
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowMobileDrawer(false);
+        setShowNotifications(false);
+        setShowUserMenu(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   React.useEffect(() => {
     if (typeof navigator !== 'undefined' && 'setAppBadge' in navigator) {
@@ -130,7 +145,7 @@ export function Navbar({
           />
           <div style={{ height: '22px', width: '1px', background: 'var(--border-subtle)' }} />
           <DynoMascot dynamicMood={mascotMood} size="sm" interactive={true} showSelectorPill={true} />
-          <div>
+          <div className="hide-on-compact">
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
               <span className="pill-badge" style={{ fontSize: '0.62rem', padding: '0.1rem 0.45rem', fontWeight: 750, color: 'var(--accent-theme)' }}>
                 PERFORMANCE OS
@@ -142,9 +157,9 @@ export function Navbar({
           </div>
         </div>
 
-        {/* View Switcher (For Managers & Admins) */}
+        {/* View Switcher (For Managers & Admins - Desktop) */}
         {(user.role === 'MANAGER' || user.role === 'ADMIN') && (
-          <div style={{ 
+          <div className="hide-on-mobile" style={{ 
             display: 'flex', 
             background: 'var(--support-pill)', 
             padding: '3px', 
@@ -192,9 +207,10 @@ export function Navbar({
         {/* Right Action Cluster */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
           
-          {/* Quick 4-Theme Segmented Switcher (Clay Pastel Worlds) */}
+          {/* Quick 4-Theme Segmented Switcher (Clay Pastel Worlds - Desktop) */}
           <div
             title="Instant Clay Pastel Theme Switcher"
+            className="hide-on-mobile"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -272,7 +288,7 @@ export function Navbar({
             <span>{streak}d</span>
           </div>
 
-          {/* Sound Mute Toggle */}
+          {/* Sound Mute Toggle (Desktop) */}
           <button
             onClick={() => {
               const next = !user.sound_enabled;
@@ -284,6 +300,7 @@ export function Navbar({
               if (next) playSound.pop(true);
             }}
             title={user.sound_enabled ? 'Mute Sounds' : 'Unmute Sounds'}
+            className="hide-on-mobile"
             style={{ width: '38px', height: '38px', minHeight: '38px', minWidth: '38px', borderRadius: '12px' }}
           >
             {user.sound_enabled ? <Volume2 size={17} color="var(--text-muted)" /> : <VolumeX size={17} color="var(--text-dim)" />}
@@ -410,8 +427,8 @@ export function Navbar({
             )}
           </div>
 
-          {/* User Profile Avatar / Quick Switcher */}
-          <div style={{ position: 'relative' }}>
+          {/* User Profile Avatar / Quick Switcher (Desktop) */}
+          <div className="hide-on-mobile" style={{ position: 'relative' }}>
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
               style={{
@@ -518,8 +535,310 @@ export function Navbar({
             )}
           </div>
 
+          {/* Mobile Hamburger Menu Button */}
+          <button
+            type="button"
+            className="show-on-mobile"
+            onClick={() => setShowMobileDrawer(true)}
+            title="Open Navigation Menu"
+            style={{
+              width: '38px',
+              height: '38px',
+              minHeight: '38px',
+              minWidth: '38px',
+              borderRadius: '12px',
+              background: 'var(--support-pill)',
+              border: '1px solid var(--border-subtle)',
+              color: 'var(--text-main)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: 'inset 1px 1px 2px var(--clay-highlight), 0 2px 6px var(--clay-drop-shadow-soft)',
+            }}
+          >
+            <Menu size={18} />
+          </button>
+
         </div>
       </div>
+
+      {/* Slide-out Mobile Navigation Drawer */}
+      {showMobileDrawer && (
+        <div
+          className="mobile-drawer-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowMobileDrawer(false);
+          }}
+        >
+          <div className="mobile-drawer-panel">
+            {/* Drawer Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '0.85rem', borderBottom: '1px solid var(--border-subtle)', marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                <img src="/ds-logo.png" alt="Digital Supremacy" style={{ height: '20px', width: 'auto' }} />
+                <span className="pill-badge" style={{ fontSize: '0.62rem', padding: '0.1rem 0.45rem', fontWeight: 750, color: 'var(--accent-theme)' }}>
+                  PERFORMANCE OS
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowMobileDrawer(false)}
+                title="Close Navigation Drawer"
+                style={{ width: '34px', height: '34px', minHeight: '34px', minWidth: '34px', borderRadius: '10px', color: 'var(--text-muted)' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* User Profile Card */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'var(--support-pill)', padding: '0.75rem 0.95rem', borderRadius: '16px', border: '1px solid var(--border-subtle)', marginBottom: '1.25rem' }}>
+              <div style={{
+                width: '42px',
+                height: '42px',
+                borderRadius: '12px',
+                background: 'var(--bg-card)',
+                color: 'var(--accent-theme)',
+                fontWeight: 800,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.95rem',
+                border: '1px solid var(--border-subtle)',
+                boxShadow: 'inset 1px 1px 2px var(--clay-highlight)',
+              }}>
+                {user.name.split(' ').map(n => n[0]).join('')}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 750, fontSize: '0.92rem', color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {user.name}
+                </div>
+                <div style={{ fontSize: '0.74rem', color: 'var(--accent-theme)', fontWeight: 650 }}>
+                  {user.role} &bull; {user.designation}
+                </div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {user.email}
+                </div>
+              </div>
+            </div>
+
+            {/* 1. Board Switcher (Managers / Admins) */}
+            {(user.role === 'MANAGER' || user.role === 'ADMIN') && (
+              <div style={{ marginBottom: '1.25rem' }}>
+                <div style={{ fontSize: '0.68rem', fontWeight: 750, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.45rem' }}>
+                  Workspace Board
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.45rem', background: 'var(--support-pill)', padding: '3px', borderRadius: '14px', border: '1px solid var(--border-subtle)' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onViewModeChange('my');
+                      setShowMobileDrawer(false);
+                    }}
+                    style={{
+                      padding: '0.55rem',
+                      minHeight: '40px',
+                      borderRadius: '10px',
+                      background: viewMode === 'my' ? 'var(--bg-card)' : 'transparent',
+                      color: viewMode === 'my' ? 'var(--text-main)' : 'var(--text-muted)',
+                      fontWeight: viewMode === 'my' ? 750 : 600,
+                      fontSize: '0.82rem',
+                      border: viewMode === 'my' ? '1px solid var(--border-subtle)' : '1px solid transparent',
+                      boxShadow: viewMode === 'my' ? '0 2px 6px var(--clay-drop-shadow-soft)' : 'none',
+                    }}
+                  >
+                    <ListTodo size={15} />
+                    <span>My Tasks</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onViewModeChange('team');
+                      setShowMobileDrawer(false);
+                    }}
+                    style={{
+                      padding: '0.55rem',
+                      minHeight: '40px',
+                      borderRadius: '10px',
+                      background: viewMode === 'team' ? 'var(--bg-card)' : 'transparent',
+                      color: viewMode === 'team' ? 'var(--text-main)' : 'var(--text-muted)',
+                      fontWeight: viewMode === 'team' ? 750 : 600,
+                      fontSize: '0.82rem',
+                      border: viewMode === 'team' ? '1px solid var(--border-subtle)' : '1px solid transparent',
+                      boxShadow: viewMode === 'team' ? '0 2px 6px var(--clay-drop-shadow-soft)' : 'none',
+                    }}
+                  >
+                    <Users size={15} />
+                    <span>Team Board</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* 2. Theme Selection */}
+            <div style={{ marginBottom: '1.25rem' }}>
+              <div style={{ fontSize: '0.68rem', fontWeight: 750, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.45rem' }}>
+                Theme Skin
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                {THEME_OPTIONS.map((t) => {
+                  const isSelected = user.theme_skin === t.id;
+                  return (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => {
+                        playSound.pop(user.sound_enabled);
+                        if (onThemeChange) {
+                          onThemeChange(t.id);
+                        } else {
+                          document.body.setAttribute('data-theme', t.id);
+                          user.theme_skin = t.id;
+                        }
+                      }}
+                      style={{
+                        padding: '0.5rem 0.65rem',
+                        minHeight: '42px',
+                        borderRadius: '12px',
+                        background: isSelected ? 'var(--support-pill)' : 'var(--bg-card)',
+                        color: isSelected ? 'var(--accent-theme)' : 'var(--text-main)',
+                        fontWeight: isSelected ? 750 : 600,
+                        fontSize: '0.82rem',
+                        border: isSelected ? '1.5px solid var(--accent-theme)' : '1px solid var(--border-subtle)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.45rem',
+                        justifyContent: 'flex-start',
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: '10px',
+                          height: '10px',
+                          borderRadius: '50%',
+                          background: t.dot,
+                          boxShadow: isSelected ? `0 0 6px ${t.dot}` : 'none',
+                        }}
+                      />
+                      <span>{t.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 3. Audio & Sound FX */}
+            <div style={{ marginBottom: '1.25rem' }}>
+              <div style={{ fontSize: '0.68rem', fontWeight: 750, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.45rem' }}>
+                Sound &amp; Feedback
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const next = !user.sound_enabled;
+                  if (onToggleSound) {
+                    onToggleSound(next);
+                  } else {
+                    user.sound_enabled = next;
+                  }
+                  if (next) playSound.pop(true);
+                }}
+                style={{
+                  width: '100%',
+                  justifyContent: 'space-between',
+                  padding: '0.6rem 0.85rem',
+                  minHeight: '44px',
+                  borderRadius: '12px',
+                  background: 'var(--support-pill)',
+                  border: '1px solid var(--border-subtle)',
+                  fontSize: '0.84rem',
+                  fontWeight: 650,
+                  color: 'var(--text-main)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  {user.sound_enabled ? <Volume2 size={16} color="var(--accent-theme)" /> : <VolumeX size={16} color="var(--text-dim)" />}
+                  <span>Micro-Sound FX</span>
+                </div>
+                <span style={{ fontSize: '0.74rem', fontWeight: 700, color: user.sound_enabled ? 'var(--accent-green)' : 'var(--text-dim)' }}>
+                  {user.sound_enabled ? 'ENABLED' : 'MUTED'}
+                </span>
+              </button>
+            </div>
+
+            {/* 4. Demo User Switcher */}
+            <div style={{ marginBottom: '1.25rem' }}>
+              <div style={{ fontSize: '0.68rem', fontWeight: 750, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.45rem' }}>
+                Switch Demo User
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                {allUsers.filter((u) => u.is_active !== false).map((u) => (
+                  <button
+                    key={u.id}
+                    type="button"
+                    onClick={() => {
+                      onSwitchUser(u);
+                      setShowMobileDrawer(false);
+                    }}
+                    style={{
+                      width: '100%',
+                      justifyContent: 'flex-start',
+                      padding: '0.5rem 0.75rem',
+                      minHeight: '40px',
+                      borderRadius: '11px',
+                      background: u.id === user.id ? 'var(--support-pill)' : 'transparent',
+                      border: u.id === user.id ? '1px solid var(--border-subtle)' : '1px solid transparent',
+                      fontSize: '0.82rem',
+                      color: u.id === user.id ? 'var(--accent-theme)' : 'var(--text-muted)',
+                    }}
+                  >
+                    <span style={{ fontWeight: 650 }}>{u.name}</span>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', marginLeft: 'auto' }}>({u.role})</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 5. System Controls */}
+            <div style={{ marginTop: 'auto', borderTop: '1px solid var(--border-subtle)', paddingTop: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              {onInstallPWA && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onInstallPWA();
+                    setShowMobileDrawer(false);
+                  }}
+                  style={{ width: '100%', justifyContent: 'flex-start', minHeight: '42px', padding: '0.5rem 0.75rem', fontSize: '0.84rem', borderRadius: '11px', color: 'var(--accent-theme)' }}
+                >
+                  <Download size={16} />
+                  <span>Install App (PWA)</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  onOpenSettings();
+                  setShowMobileDrawer(false);
+                }}
+                style={{ width: '100%', justifyContent: 'flex-start', minHeight: '42px', padding: '0.5rem 0.75rem', fontSize: '0.84rem', borderRadius: '11px' }}
+              >
+                <Settings size={16} />
+                <span>Settings &amp; Workforce</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowMobileDrawer(false);
+                  onLogout();
+                }}
+                style={{ width: '100%', justifyContent: 'flex-start', minHeight: '42px', padding: '0.5rem 0.75rem', fontSize: '0.84rem', color: 'var(--accent-red)', borderRadius: '11px' }}
+              >
+                <LogOut size={16} />
+                <span>Log Out</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </header>
   );
 }

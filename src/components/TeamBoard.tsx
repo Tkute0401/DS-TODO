@@ -81,7 +81,7 @@ export function TeamBoard({
             </span>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '0.75rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.75rem' }}>
             {bottleneckItems.map((t) => {
               const hours = Math.floor((Date.now() - new Date(t.review_started_at!).getTime()) / (1000 * 60 * 60));
               return (
@@ -178,7 +178,7 @@ export function TeamBoard({
             </h3>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '0.75rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '0.75rem' }}>
             {reviewTasks.map((t) => {
               const hoursInReview = t.review_started_at
                 ? (Date.now() - new Date(t.review_started_at).getTime()) / (1000 * 60 * 60)
@@ -274,7 +274,7 @@ export function TeamBoard({
           <span>Team Workload &amp; Active Deliverables</span>
         </h3>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1rem' }}>
           {allUsers.map((member) => {
             const memberTasks = allTasks.filter((t) => t.assignee_id === member.id);
             const inProgressTasks = memberTasks.filter((t) => t.status === 'IN_PROGRESS' && !t.active_blocker);
