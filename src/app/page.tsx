@@ -761,7 +761,7 @@ export default function App() {
               </div>
 
               {/* Status filter pills */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', overflowX: 'auto' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', overflowX: 'auto' }}>
                 {(['ALL', 'ACTIVE', 'BLOCKED', 'REVIEW', 'DONE'] as const).map((filter) => {
                   const isActive = statusFilter === filter;
                   return (
@@ -769,18 +769,7 @@ export default function App() {
                       key={filter}
                       type="button"
                       onClick={() => setStatusFilter(filter)}
-                      style={{
-                        padding: '0.35rem 0.75rem',
-                        minHeight: '30px',
-                        borderRadius: '999px',
-                        fontSize: '0.74rem',
-                        fontWeight: 700,
-                        border: isActive ? '1.5px solid var(--accent-theme)' : '1px solid var(--border-subtle)',
-                        background: isActive ? 'var(--support-pill)' : 'transparent',
-                        color: isActive ? 'var(--accent-theme)' : 'var(--text-dim)',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease',
-                      }}
+                      className={`filter-pill ${isActive ? 'filter-pill-active' : ''}`}
                     >
                       {filter === 'ALL' ? 'All' : filter === 'ACTIVE' ? 'Active' : filter === 'BLOCKED' ? 'Blocked' : filter === 'REVIEW' ? 'Review' : 'Done'}
                     </button>
@@ -797,7 +786,7 @@ export default function App() {
                     <AlertTriangle size={15} />
                     <span>🔴 Rolled Over From Yesterday</span>
                   </div>
-                  <span className="pill-badge pill-badge-warning">{overdueTasks.length} Tasks</span>
+                  <span className="section-badge pill-badge-warning tabular-numbers">{overdueTasks.length} Tasks</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
                   {overdueTasks.map((task) => (
@@ -829,7 +818,7 @@ export default function App() {
                     <Zap size={15} />
                     <span>Top Priority Focus</span>
                   </div>
-                  <span className="pill-badge pill-badge-urgent">{urgentTasks.length} Urgent</span>
+                  <span className="section-badge pill-badge-urgent tabular-numbers">{urgentTasks.length} Urgent</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
                   {urgentTasks.map((task) => (
@@ -857,10 +846,10 @@ export default function App() {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem' }}>
                 <div className="section-title section-title-neutral">
-                  <ListTodo size={15} color="var(--accent-theme)" />
+                  <ListTodo size={15} />
                   <span>Today&rsquo;s Focus List</span>
                 </div>
-                <span className="pill-badge">{regularTasks.length} Active</span>
+                <span className="section-badge tabular-numbers">{regularTasks.length} Active</span>
               </div>
 
               {regularTasks.length === 0 && overdueTasks.length === 0 && urgentTasks.length === 0 ? (
@@ -986,7 +975,7 @@ export default function App() {
                     <CheckCircle2 size={15} />
                     <span>Done &amp; Dusted ✨</span>
                   </div>
-                  <span className="pill-badge pill-badge-success">{recentCompletedTasks.length} Recent · {completedTasks.length} Total</span>
+                  <span className="section-badge pill-badge-success tabular-numbers">{recentCompletedTasks.length} Recent · {completedTasks.length} Total</span>
                 </div>
 
                 {/* Recent Completed Deliverables (<7 days) */}

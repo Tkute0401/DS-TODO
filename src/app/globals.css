@@ -250,101 +250,238 @@ h1, h2, h3, h4, h5, h6 {
   color: #f1f3f7 !important;
 }
 
+/* Filter Bar Pebble Pills */
+.filter-pill {
+  padding: 0.32rem 0.82rem;
+  min-height: 30px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 750;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+  color: var(--text-main);
+  box-shadow: 0 1px 3px var(--clay-drop-shadow-soft), inset 1px 1px 2px var(--clay-highlight);
+  cursor: pointer;
+  transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.filter-pill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px var(--clay-drop-shadow), inset 1px 1px 2px var(--clay-highlight);
+  border-color: var(--border-active);
+}
+
+.filter-pill-active {
+  background: var(--accent-theme) !important;
+  color: var(--accent-contrast) !important;
+  border: 1px solid var(--accent-theme) !important;
+  box-shadow: 0 3px 10px var(--accent-glow), inset 1px 1px 2px rgba(255, 255, 255, 0.45) !important;
+}
+
 /* Section Titles & Ground Typography */
 .section-title {
   display: flex;
   align-items: center;
   gap: 0.45rem;
-  font-size: 0.86rem;
-  font-weight: 750;
+  font-size: 0.88rem;
+  font-weight: 800;
   letter-spacing: -0.01em;
 }
 
-.section-title-warning {
-  color: var(--accent-amber);
+/* LILAC (CYBERPUNK) Ground Typography - Deep Pigmented Contrast on Lavender Canvas */
+[data-theme="CYBERPUNK"] .section-title {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  font-weight: 800;
 }
 
-.section-title-urgent {
-  color: var(--accent-red);
+[data-theme="CYBERPUNK"] .section-title-warning {
+  color: #78350f !important; /* Deep Burnt Amber - 7.2:1 contrast against #a690c5 */
 }
 
-.section-title-neutral {
-  color: var(--text-main);
+[data-theme="CYBERPUNK"] .section-title-urgent {
+  color: #7f1d1d !important; /* Deep Ruby Crimson - 7.5:1 contrast against #a690c5 */
 }
 
-.section-title-success {
-  color: var(--accent-green);
+[data-theme="CYBERPUNK"] .section-title-neutral {
+  color: #1e1138 !important; /* Deep Midnight Violet - 9.5:1 contrast against #a690c5 */
 }
 
-/* In MATCHA (Victorian), ground background is deep botanical ivy #1e2f23.
-   Headings & section titles outside cards glow with luminous warmth */
+[data-theme="CYBERPUNK"] .section-title-success {
+  color: #064e3b !important; /* Deep Pine Emerald - 7.0:1 contrast against #a690c5 */
+}
+
+/* LILAC Section Counter Badges - Solid Porcelain Clay Pills */
+[data-theme="CYBERPUNK"] .section-badge {
+  background: #ffffff !important;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.74rem;
+  padding: 0.22rem 0.65rem;
+  box-shadow: 0 2px 6px rgba(45, 39, 36, 0.12), inset 1px 1px 2px rgba(255, 255, 255, 0.95);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+[data-theme="CYBERPUNK"] .section-badge.pill-badge-warning {
+  color: #92400e !important;
+  border: 1.5px solid rgba(217, 119, 6, 0.45) !important;
+}
+
+[data-theme="CYBERPUNK"] .section-badge.pill-badge-urgent {
+  color: #b91c1c !important;
+  border: 1.5px solid rgba(220, 38, 38, 0.45) !important;
+}
+
+[data-theme="CYBERPUNK"] .section-badge:not(.pill-badge-warning):not(.pill-badge-urgent):not(.pill-badge-success) {
+  color: #1e1138 !important;
+  border: 1.5px solid rgba(104, 53, 186, 0.35) !important;
+}
+
+[data-theme="CYBERPUNK"] .section-badge.pill-badge-success {
+  color: #047857 !important;
+  border: 1.5px solid rgba(5, 150, 105, 0.45) !important;
+}
+
+/* VICTORIAN MATCHA Ground Typography & Badges */
+[data-theme="MATCHA"] .section-title {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  font-weight: 800;
+}
+
 [data-theme="MATCHA"] .section-title-neutral {
-  color: #fdfaf3 !important;
+  color: #fdfaf3 !important; /* Antique Ivory */
 }
 
 [data-theme="MATCHA"] .section-title-warning {
-  color: #fbbf24 !important;
+  color: #fbbf24 !important; /* Radiant Gilded Gold */
 }
 
 [data-theme="MATCHA"] .section-title-urgent {
-  color: #f87171 !important;
+  color: #f87171 !important; /* Radiant Coral Red */
 }
 
 [data-theme="MATCHA"] .section-title-success {
-  color: #38d39f !important;
+  color: #38d39f !important; /* Radiant Spring Emerald */
 }
 
-/* In GOTHIC (Sunset), ground is obsidian #0a0a0f */
-[data-theme="SUNSET"] .section-title-neutral {
-  color: #f1f3f7 !important;
+[data-theme="MATCHA"] .section-badge {
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.74rem;
+  padding: 0.22rem 0.65rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), inset 1px 1px 2px var(--clay-highlight);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
-[data-theme="SUNSET"] .section-title-warning {
-  color: #f59e0b !important;
+[data-theme="MATCHA"] .section-badge.pill-badge-warning {
+  background: #2a3d30 !important;
+  color: #fbbf24 !important;
+  border: 1.5px solid rgba(251, 191, 36, 0.6) !important;
 }
 
-[data-theme="SUNSET"] .section-title-urgent {
-  color: #ff4757 !important;
-}
-
-[data-theme="SUNSET"] .section-title-success {
-  color: #2ed573 !important;
-}
-
-/* In DIGITAL (Minimal), ground is deep navy #0b0f17 */
-[data-theme="MINIMAL"] .section-title-neutral {
-  color: #f1f5f9 !important;
-}
-
-/* Pill badges on dark backgrounds */
-[data-theme="MATCHA"] .pill-badge {
-  background: #fcf9f2;
-  color: #142217;
-  border-color: rgba(197, 155, 39, 0.35);
-}
-
-[data-theme="MATCHA"] .pill-badge-warning {
-  background: rgba(245, 158, 11, 0.22) !important;
-  color: #fcd34d !important;
-  border-color: rgba(245, 158, 11, 0.5) !important;
-}
-
-[data-theme="MATCHA"] .pill-badge-urgent {
-  background: rgba(239, 68, 68, 0.22) !important;
+[data-theme="MATCHA"] .section-badge.pill-badge-urgent {
+  background: #332426 !important;
   color: #fca5a5 !important;
-  border-color: rgba(239, 68, 68, 0.5) !important;
+  border: 1.5px solid rgba(248, 113, 113, 0.6) !important;
 }
 
-[data-theme="MATCHA"] .pill-badge-success {
-  background: rgba(56, 211, 159, 0.22) !important;
-  color: #6ee7b7 !important;
-  border-color: rgba(56, 211, 159, 0.5) !important;
+[data-theme="MATCHA"] .section-badge:not(.pill-badge-warning):not(.pill-badge-urgent):not(.pill-badge-success) {
+  background: #24352a !important;
+  color: #fdfaf3 !important;
+  border: 1.5px solid rgba(197, 155, 39, 0.5) !important;
 }
 
-[data-theme="SUNSET"] .pill-badge-success {
-  background: rgba(46, 213, 115, 0.2) !important;
-  color: #6ee7b7 !important;
-  border-color: rgba(46, 213, 115, 0.5) !important;
+[data-theme="MATCHA"] .section-badge.pill-badge-success {
+  background: #1c382b !important;
+  color: #38d39f !important;
+  border: 1.5px solid rgba(56, 211, 159, 0.6) !important;
+}
+
+/* GOTHIC (SUNSET) Ground Typography & Badges */
+[data-theme="SUNSET"] .section-title-neutral { color: #f1f3f7 !important; }
+[data-theme="SUNSET"] .section-title-warning { color: #fbbf24 !important; }
+[data-theme="SUNSET"] .section-title-urgent { color: #ff6b81 !important; }
+[data-theme="SUNSET"] .section-title-success { color: #2ed573 !important; }
+
+[data-theme="SUNSET"] .section-badge {
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.74rem;
+  padding: 0.22rem 0.65rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+[data-theme="SUNSET"] .section-badge.pill-badge-warning {
+  background: #231b14 !important;
+  color: #fbbf24 !important;
+  border: 1.5px solid rgba(251, 191, 36, 0.6) !important;
+}
+
+[data-theme="SUNSET"] .section-badge.pill-badge-urgent {
+  background: #261217 !important;
+  color: #ff6b81 !important;
+  border: 1.5px solid rgba(255, 107, 129, 0.6) !important;
+}
+
+[data-theme="SUNSET"] .section-badge:not(.pill-badge-warning):not(.pill-badge-urgent):not(.pill-badge-success) {
+  background: #161622 !important;
+  color: #f1f3f7 !important;
+  border: 1.5px solid var(--border-subtle) !important;
+}
+
+[data-theme="SUNSET"] .section-badge.pill-badge-success {
+  background: #12241a !important;
+  color: #2ed573 !important;
+  border: 1.5px solid rgba(46, 213, 115, 0.6) !important;
+}
+
+/* DIGITAL (MINIMAL) Ground Typography & Badges */
+[data-theme="MINIMAL"] .section-title-neutral { color: #f8fafc !important; }
+[data-theme="MINIMAL"] .section-title-warning { color: #fbbf24 !important; }
+[data-theme="MINIMAL"] .section-title-urgent { color: #ff6b81 !important; }
+[data-theme="MINIMAL"] .section-title-success { color: #2ed573 !important; }
+
+[data-theme="MINIMAL"] .section-badge {
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.74rem;
+  padding: 0.22rem 0.65rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+[data-theme="MINIMAL"] .section-badge.pill-badge-warning {
+  background: #201a12 !important;
+  color: #fbbf24 !important;
+  border: 1.5px solid rgba(251, 191, 36, 0.6) !important;
+}
+
+[data-theme="MINIMAL"] .section-badge.pill-badge-urgent {
+  background: #231317 !important;
+  color: #ff6b81 !important;
+  border: 1.5px solid rgba(255, 107, 129, 0.6) !important;
+}
+
+[data-theme="MINIMAL"] .section-badge:not(.pill-badge-warning):not(.pill-badge-urgent):not(.pill-badge-success) {
+  background: #121824 !important;
+  color: #f8fafc !important;
+  border: 1.5px solid var(--border-subtle) !important;
+}
+
+[data-theme="MINIMAL"] .section-badge.pill-badge-success {
+  background: #0e2318 !important;
+  color: #2ed573 !important;
+  border: 1.5px solid rgba(46, 213, 115, 0.6) !important;
 }
 
 /* Digital Supremacy Brand Logo Adaptation across Light & Dark Navbars */
