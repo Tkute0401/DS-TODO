@@ -1,0 +1,44 @@
+{
+  "name": "DYNOTODO Workforce Engine",
+  "short_name": "DYNOTODO",
+  "id": "/",
+  "description": "High-velocity dynamic todo list and team accountability engine for agile firms.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "window-controls-overlay"],
+  "background_color": "#08090c",
+  "theme_color": "#08090c",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "business", "utilities"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "My Tasks",
+      "url": "/?view=my",
+      "description": "Open your daily isolated deliverable list"
+    },
+    {
+      "name": "Team Board",
+      "url": "/?view=team",
+      "description": "Open managerial review & people-first radar"
+    }
+  ]
+}

@@ -1,0 +1,707 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap');
+
+/* ==========================================================================
+   DYNOTODO - 4 CURATED THEME ENGINE & TACTILE CLAYMORPHIC DESIGN SYSTEM
+   1) LILAC: Darker shade of French lavender background + porcelain cards
+   2) VICTORIAN MATCHA: Royal Herbarium ivy green + gilded brass + vellum cards
+   3) GOTHIC DARK VIBES: Crypt obsidian + cold basalt stone + blood ruby crimson embers
+   4) DIGITAL SUPREMACY: Original pitch void black + stark white + electric cyan
+   ========================================================================== */
+
+/* -------------------------------------------------------------
+   THEME 4 (ROOT DEFAULT): DIGITAL SUPREMACY ORIGINAL
+   Colors: Void Black (#08090c) + Crisp White (#ffffff) + Electric Cyan (#00f0ff)
+   Mood: High-Precision Cyber Terminal, Ultra-Legible, Futuristic Contrast
+   ------------------------------------------------------------- */
+:root,
+[data-theme="OBSIDIAN"] {
+  --bg-primary: #08090c;
+  --bg-secondary: #0f1118;
+  --bg-tertiary: #161924;
+  --bg-card: #0d0f15;
+  --bg-glass: rgba(13, 15, 21, 0.94);
+  --bg-blob-1: rgba(0, 240, 255, 0.08);
+  --bg-blob-2: rgba(0, 180, 255, 0.05);
+
+  --border-subtle: rgba(255, 255, 255, 0.10);
+  --border-active: rgba(0, 240, 255, 0.50);
+  --border-focus: #00f0ff;
+  --card-specular: rgba(0, 240, 255, 0.12);
+
+  --clay-highlight: rgba(255, 255, 255, 0.08);
+  --clay-inner-shadow: rgba(0, 0, 0, 0.55);
+  --clay-drop-shadow: rgba(0, 0, 0, 0.70);
+  --clay-drop-shadow-soft: rgba(0, 0, 0, 0.35);
+
+  --text-main: #ffffff;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --support-pill: #131622;
+
+  --accent-theme: #00f0ff;
+  --accent-contrast: #08090c;
+  --accent-glow: rgba(0, 240, 255, 0.38);
+  --accent-gradient: linear-gradient(135deg, #00f0ff 0%, #00b4d8 100%);
+  --accent-hover: #33f3ff;
+  --theme-chip-bg: rgba(0, 240, 255, 0.16);
+
+  --accent-red: #ff4757;
+  --accent-amber: #ffa502;
+  --accent-green: #2ed573;
+  --accent-gold: #eccc68;
+  --accent-purple: #a55eea;
+}
+
+/* -------------------------------------------------------------
+   THEME 1: LILAC & DARKER LAVENDER
+   Colors: Darker Lavender Ground (#a690c5) + Porcelain Clay (#ffffff) + Royal Violet (#6835ba)
+   Mood: Calming Dusky Lavender, Tactile Porcelain Cards & Royal Wisteria
+   ------------------------------------------------------------- */
+[data-theme="CYBERPUNK"] {
+  --bg-primary: #a690c5;
+  --bg-secondary: #977fb7;
+  --bg-tertiary: #8971aa;
+  --bg-card: #ffffff;
+  --bg-glass: rgba(255, 255, 255, 0.94);
+  --bg-blob-1: rgba(104, 53, 186, 0.16);
+  --bg-blob-2: rgba(255, 255, 255, 0.14);
+
+  --border-subtle: rgba(75, 45, 110, 0.22);
+  --border-active: rgba(104, 53, 186, 0.45);
+  --border-focus: #6835ba;
+  --card-specular: rgba(255, 255, 255, 0.98);
+
+  --clay-highlight: rgba(255, 255, 255, 0.92);
+  --clay-inner-shadow: rgba(75, 40, 115, 0.08);
+  --clay-drop-shadow: rgba(45, 25, 75, 0.14);
+  --clay-drop-shadow-soft: rgba(45, 25, 75, 0.06);
+
+  --text-main: #1a1027;
+  --text-muted: #524068;
+  --text-dim: #735e8e;
+  --support-pill: #efe6f9;
+
+  --accent-theme: #6835ba;
+  --accent-contrast: #ffffff;
+  --accent-glow: rgba(104, 53, 186, 0.28);
+  --accent-gradient: linear-gradient(135deg, #7c48cf 0%, #582b9e 100%);
+  --accent-hover: #7b46d0;
+  --theme-chip-bg: rgba(104, 53, 186, 0.15);
+
+  --accent-red: #d94e4e;
+  --accent-amber: #d9822b;
+  --accent-green: #2e8b57;
+  --accent-gold: #c98a2c;
+  --accent-purple: #6835ba;
+}
+
+/* -------------------------------------------------------------
+   THEME 2: VICTORIAN MATCHA (ROYAL HERBARIUM & GILDED BRASS)
+   Colors: Deep Botanical Ivy Ground (#1e2f23) + Antique Vellum Parchment (#fcf9f2) + Victorian Forest (#1b4d2e) + Gilded Brass (#c59b27)
+   Mood: Royal Botanical Glasshouse, Antique Pressed Flora, Gilded Gold Accents
+   ------------------------------------------------------------- */
+[data-theme="MATCHA"] {
+  --bg-primary: #1e2f23;
+  --bg-secondary: #18271d;
+  --bg-tertiary: #132017;
+  --bg-card: #fcf9f2;
+  --bg-glass: rgba(252, 249, 242, 0.95);
+  --bg-blob-1: rgba(197, 155, 39, 0.12);
+  --bg-blob-2: rgba(27, 77, 46, 0.22);
+
+  --border-subtle: rgba(180, 140, 45, 0.26);
+  --border-active: rgba(197, 155, 39, 0.55);
+  --border-focus: #c59b27;
+  --card-specular: rgba(255, 252, 245, 0.98);
+
+  --clay-highlight: rgba(255, 255, 255, 0.94);
+  --clay-inner-shadow: rgba(30, 47, 35, 0.10);
+  --clay-drop-shadow: rgba(12, 20, 14, 0.24);
+  --clay-drop-shadow-soft: rgba(12, 20, 14, 0.08);
+
+  --text-main: #142217;
+  --text-muted: #3d5241;
+  --text-dim: #5c7361;
+  --support-pill: #f3efe4;
+
+  --accent-theme: #1b4d2e;
+  --accent-contrast: #ffffff;
+  --accent-glow: rgba(27, 77, 46, 0.32);
+  --accent-gradient: linear-gradient(135deg, #24633b 0%, #153c24 100%);
+  --accent-hover: #24633b;
+  --theme-chip-bg: rgba(197, 155, 39, 0.16);
+
+  --accent-red: #c0392b;
+  --accent-amber: #c59b27;
+  --accent-green: #1b4d2e;
+  --accent-gold: #c59b27;
+  --accent-purple: #5c3c75;
+}
+
+/* -------------------------------------------------------------
+   THEME 3: GOTHIC DARK VIBES (CATHEDRAL OBSIDIAN & BLOOD RUBY)
+   Colors: Crypt Obsidian (#07080b) + Basalt Iron (#0d0e14) + Blood Ruby Crimson (#c5222f)
+   Mood: Gothic Cathedral Midnight, Stained Glass Glow, Cold Stone & Wrought Iron
+   ------------------------------------------------------------- */
+[data-theme="SUNSET"] {
+  --bg-primary: #07080b;
+  --bg-secondary: #0c0d12;
+  --bg-tertiary: #111219;
+  --bg-card: #0d0e14;
+  --bg-glass: rgba(13, 14, 20, 0.95);
+  --bg-blob-1: rgba(197, 34, 47, 0.12);
+  --bg-blob-2: rgba(76, 29, 149, 0.08);
+
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-active: rgba(197, 34, 47, 0.55);
+  --border-focus: #c5222f;
+  --card-specular: rgba(197, 34, 47, 0.14);
+
+  --clay-highlight: rgba(255, 255, 255, 0.06);
+  --clay-inner-shadow: rgba(0, 0, 0, 0.65);
+  --clay-drop-shadow: rgba(0, 0, 0, 0.85);
+  --clay-drop-shadow-soft: rgba(0, 0, 0, 0.45);
+
+  --text-main: #f1f3f7;
+  --text-muted: #8b92a5;
+  --text-dim: #5a6174;
+  --support-pill: #15161f;
+
+  --accent-theme: #c5222f;
+  --accent-contrast: #ffffff;
+  --accent-glow: rgba(197, 34, 47, 0.42);
+  --accent-gradient: linear-gradient(135deg, #e11d48 0%, #9f1239 100%);
+  --accent-hover: #e11d48;
+  --theme-chip-bg: rgba(197, 34, 47, 0.18);
+
+  --accent-red: #c5222f;
+  --accent-amber: #e67e22;
+  --accent-green: #27ae60;
+  --accent-gold: #d4af37;
+  --accent-purple: #8e44ad;
+}
+
+/* Global Reset & Base Typography */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  background-color: var(--bg-primary);
+  background-image: 
+    radial-gradient(circle at 12% 15%, var(--bg-blob-1), transparent 45%),
+    radial-gradient(circle at 88% 85%, var(--bg-blob-2), transparent 45%);
+  background-size: 100% 100%;
+  background-attachment: fixed;
+  color: var(--text-main);
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1, "cv02", "cv03", "cv04", "cv11";
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+/* Typography Scale & Hierarchy */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-main);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+
+/* Theme-Specific Distinctive Headings */
+[data-theme="MATCHA"] h1,
+[data-theme="MATCHA"] h2,
+[data-theme="MATCHA"] h3,
+[data-theme="MATCHA"] h4,
+[data-theme="MATCHA"] .theme-heading {
+  font-family: 'Playfair Display', Baskerville, Georgia, serif;
+  letter-spacing: -0.01em;
+}
+
+[data-theme="SUNSET"] h1,
+[data-theme="SUNSET"] h2,
+[data-theme="SUNSET"] h3,
+[data-theme="SUNSET"] h4,
+[data-theme="SUNSET"] .theme-heading {
+  font-family: 'Cinzel', 'Playfair Display', Georgia, serif;
+  letter-spacing: 0.02em;
+}
+
+/* Tabular numbers for dates, metrics, and streaks */
+.tabular-numbers,
+input[type="date"],
+.streak-counter,
+.metric-value,
+kbd {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* Buttons & Touch Ergonomics - Soft Tactile Clay Cushion */
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: inherit;
+  outline: none;
+}
+
+button {
+  cursor: pointer;
+  border: 1.5px solid var(--border-subtle);
+  background: var(--bg-card);
+  color: var(--text-main);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 40px;
+  border-radius: 14px;
+  font-weight: 650;
+  font-size: 0.86rem;
+  box-shadow: 
+    inset 1.5px 1.5px 3px var(--clay-highlight),
+    inset -1.5px -1.5px 3px var(--clay-inner-shadow),
+    0 4px 12px -2px var(--clay-drop-shadow);
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+button:hover {
+  transform: translateY(-1.5px);
+  border-color: var(--border-active);
+  box-shadow: 
+    inset 1.5px 1.5px 3px var(--clay-highlight),
+    inset -1.5px -1.5px 3px var(--clay-inner-shadow),
+    0 7px 18px -2px var(--clay-drop-shadow);
+}
+
+button:active {
+  transform: translateY(1px) scale(0.97);
+  box-shadow: 
+    inset 2px 2px 4px var(--clay-inner-shadow),
+    inset -1px -1px 2px var(--clay-highlight),
+    0 1px 3px var(--clay-drop-shadow-soft);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Tactile Accent Clay Button */
+.btn-accent {
+  background: var(--accent-theme) !important;
+  color: var(--accent-contrast) !important;
+  font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 
+    inset 2px 2px 4px rgba(255, 255, 255, 0.45),
+    inset -2px -2px 4px rgba(0, 0, 0, 0.14),
+    0 6px 18px var(--accent-glow) !important;
+}
+
+.btn-accent:hover {
+  background: var(--accent-hover) !important;
+  transform: translateY(-1.5px);
+  box-shadow: 
+    inset 2px 2px 4px rgba(255, 255, 255, 0.55),
+    inset -2px -2px 4px rgba(0, 0, 0, 0.16),
+    0 8px 22px var(--accent-glow) !important;
+}
+
+.btn-accent:active {
+  transform: translateY(1px) scale(0.97);
+  box-shadow: 
+    inset 2px 2px 5px rgba(0, 0, 0, 0.22),
+    inset -1px -1px 2px rgba(255, 255, 255, 0.3),
+    0 2px 6px var(--accent-glow) !important;
+}
+
+/* Claymorphic Panels & Tiles */
+.glass-panel {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: 22px;
+  box-shadow: 
+    inset 2.5px 2.5px 5px var(--clay-highlight),
+    inset -2.5px -2.5px 6px var(--clay-inner-shadow),
+    0 14px 32px -6px var(--clay-drop-shadow),
+    0 4px 10px -2px var(--clay-drop-shadow-soft);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-interactive {
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-interactive:hover {
+  border-color: var(--border-active);
+  transform: translateY(-2px);
+  box-shadow: 
+    inset 2.5px 2.5px 6px var(--clay-highlight),
+    inset -2.5px -2.5px 6px var(--clay-inner-shadow),
+    0 18px 36px -6px var(--clay-drop-shadow),
+    0 6px 14px -2px var(--clay-drop-shadow-soft);
+}
+
+.card-interactive:active {
+  transform: translateY(0) scale(0.99);
+  box-shadow: 
+    inset 1.5px 1.5px 4px var(--clay-inner-shadow),
+    inset -1px -1px 3px var(--clay-highlight),
+    0 4px 10px var(--clay-drop-shadow-soft);
+}
+
+/* Micro Badge and Pill System - Tactile Rounded Pebble Pills */
+.pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  background: var(--support-pill);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  box-shadow: 
+    inset 1px 1px 2px var(--clay-highlight),
+    inset -1px -1px 2px var(--clay-inner-shadow),
+    0 2px 5px var(--clay-drop-shadow-soft);
+  white-space: nowrap;
+}
+
+.pill-badge-urgent {
+  background: rgba(255, 71, 87, 0.14) !important;
+  border: 1px solid rgba(255, 71, 87, 0.35) !important;
+  color: var(--accent-red) !important;
+}
+
+.pill-badge-warning {
+  background: rgba(255, 165, 2, 0.14) !important;
+  border: 1px solid rgba(255, 165, 2, 0.35) !important;
+  color: var(--accent-amber) !important;
+}
+
+.pill-badge-success {
+  background: rgba(46, 213, 115, 0.14) !important;
+  border: 1px solid rgba(46, 213, 115, 0.35) !important;
+  color: var(--accent-green) !important;
+}
+
+/* Keyboard Hint Badges */
+kbd {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.18rem 0.5rem;
+  border-radius: 8px;
+  background: var(--support-pill);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  box-shadow: inset 1px 1px 2px var(--clay-highlight), 0 1px 3px var(--clay-drop-shadow-soft);
+}
+
+/* Precision Clay Command Input Bar */
+.task-input-container {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: 20px;
+  box-shadow: 
+    inset 2px 2px 5px var(--clay-inner-shadow),
+    inset -2px -2px 5px var(--clay-highlight),
+    0 6px 18px var(--clay-drop-shadow-soft);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.task-input-container:focus-within {
+  border-color: var(--accent-theme) !important;
+  box-shadow: 
+    inset 2px 2px 4px var(--clay-inner-shadow),
+    inset -2px -2px 4px var(--clay-highlight),
+    0 0 0 3px var(--accent-glow),
+    0 8px 24px var(--clay-drop-shadow) !important;
+}
+
+/* Semantic Status Rails on Deliverables */
+.status-in-progress {
+  border-left: 4px solid var(--accent-theme) !important;
+}
+
+.status-blocked {
+  border-left: 4px solid var(--accent-red) !important;
+  background: linear-gradient(90deg, rgba(255, 71, 87, 0.08) 0%, var(--bg-card) 100%) !important;
+}
+
+.status-review {
+  border-left: 4px solid var(--accent-gold) !important;
+  background: linear-gradient(90deg, rgba(236, 204, 104, 0.08) 0%, var(--bg-card) 100%) !important;
+}
+
+.status-done {
+  border-left: 4px solid var(--accent-green) !important;
+  opacity: 0.82;
+}
+
+@keyframes pulse-danger {
+  0%, 100% { border-color: rgba(244, 63, 94, 0.3); }
+  50% { border-color: rgba(244, 63, 94, 0.85); box-shadow: 0 0 16px rgba(244, 63, 94, 0.2); }
+}
+
+/* Hardware-Accelerated Tiered Flame Streak */
+@keyframes flame-spark {
+  0%, 100% { transform: scale(1) rotate(-1deg); filter: drop-shadow(0 0 4px var(--accent-theme)); }
+  50% { transform: scale(1.1) rotate(2deg); filter: drop-shadow(0 0 8px var(--accent-theme)); }
+}
+
+@keyframes flame-blaze {
+  0%, 100% { transform: scale(1) translateY(0); filter: drop-shadow(0 0 6px var(--accent-amber)); }
+  33% { transform: scale(1.14) rotate(-3deg) translateY(-1px); filter: drop-shadow(0 0 12px var(--accent-red)); }
+  66% { transform: scale(1.06) rotate(3deg) translateY(1px); filter: drop-shadow(0 0 10px var(--accent-amber)); }
+}
+
+@keyframes flame-supernova {
+  0%, 100% { transform: scale(1.08) rotate(0); filter: drop-shadow(0 0 8px #a855f7) drop-shadow(0 0 16px var(--accent-theme)); }
+  50% { transform: scale(1.22) rotate(-4deg); filter: drop-shadow(0 0 18px #d946ef) drop-shadow(0 0 24px var(--accent-theme)); }
+}
+
+.flame-spark {
+  color: var(--accent-theme);
+  animation: flame-spark 2s infinite ease-in-out;
+}
+
+.flame-blaze {
+  color: var(--accent-amber);
+  animation: flame-blaze 1.4s infinite ease-in-out;
+}
+
+.flame-supernova {
+  color: var(--accent-theme);
+  animation: flame-supernova 1s infinite ease-in-out;
+}
+
+/* Spring-Draw SVG Checkmark (Zero-Weight Hardware Accelerated) */
+@keyframes stroke-draw {
+  0% {
+    stroke-dashoffset: 24;
+    transform: scale(0.65);
+    opacity: 0;
+  }
+  60% {
+    stroke-dashoffset: 0;
+    transform: scale(1.22);
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.checkmark-path {
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
+  animation: stroke-draw 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  transform-origin: center;
+}
+
+/* Mascot Keyframes */
+@keyframes mascot-sway {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-3px) rotate(2deg); }
+}
+
+.mascot-alive {
+  display: inline-block;
+  animation: mascot-sway 3.2s infinite ease-in-out;
+}
+
+/* Dyno Character Mascot Keyframes (120 FPS GPU Accelerated) */
+@keyframes dyno-breathing {
+  0%, 100% { transform: scale(1) translateY(0); }
+  50% { transform: scale(1.02, 0.98) translateY(0.5px); }
+}
+
+@keyframes dyno-blink-eyes {
+  0%, 92%, 100% { transform: scaleY(1); }
+  94%, 96% { transform: scaleY(0.1); }
+}
+
+@keyframes dyno-tail-wag {
+  0%, 100% { transform: rotate(0deg); transform-origin: 26px 70px; }
+  50% { transform: rotate(8deg); transform-origin: 26px 70px; }
+}
+
+@keyframes dyno-head-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); transform-origin: 50px 42px; }
+  25% { transform: translateY(-1.5px) rotate(-2deg); transform-origin: 50px 42px; }
+  75% { transform: translateY(-0.5px) rotate(2deg); transform-origin: 50px 42px; }
+}
+
+@keyframes dyno-coffee-sip {
+  0%, 75%, 100% { transform: translateY(0); }
+  85% { transform: translateY(-2px) rotate(-3deg); }
+}
+
+@keyframes steam-rise {
+  0% { transform: translateY(0) scaleX(1); opacity: 0; }
+  30% { opacity: 0.8; }
+  100% { transform: translateY(-8px) scaleX(1.4); opacity: 0; }
+}
+
+@keyframes note-float {
+  0% { transform: translateY(0) scale(0.8) rotate(0); opacity: 0; }
+  40% { opacity: 1; }
+  100% { transform: translateY(-12px) scale(1.1) rotate(15deg); opacity: 0; }
+}
+
+@keyframes beacon-flash {
+  0%, 100% { opacity: 0.4; filter: drop-shadow(0 0 2px #facc15); }
+  50% { opacity: 1; filter: drop-shadow(0 0 8px #f59e0b) drop-shadow(0 0 14px #ea580c); }
+}
+
+@keyframes sparkle-twinkle {
+  0%, 100% { transform: scale(0.6) rotate(0); opacity: 0.3; }
+  50% { transform: scale(1.2) rotate(45deg); opacity: 1; }
+}
+
+@keyframes bubble-pop-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(6px) scale(0.9); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+.dyno-breathing {
+  animation: dyno-breathing 2.8s infinite ease-in-out;
+  transform-origin: center bottom;
+}
+
+.dyno-blink-eyes {
+  animation: dyno-blink-eyes 3.6s infinite;
+  transform-origin: 53px 42px;
+}
+
+.dyno-tail-wag {
+  animation: dyno-tail-wag 1.6s infinite ease-in-out;
+}
+
+.dyno-head-bob {
+  animation: dyno-head-bob 0.85s infinite ease-in-out;
+}
+
+.dyno-coffee-arm {
+  animation: dyno-coffee-sip 4s infinite ease-in-out;
+  transform-origin: 62px 69px;
+}
+
+.steam-wisp-1 {
+  animation: steam-rise 2s infinite ease-out;
+}
+
+.steam-wisp-2 {
+  animation: steam-rise 2.3s infinite 0.7s ease-out;
+}
+
+.music-note-1 {
+  animation: note-float 1.8s infinite ease-out;
+}
+
+.music-note-2 {
+  animation: note-float 2.1s infinite 0.6s ease-out;
+}
+
+.music-note-3 {
+  animation: note-float 1.9s infinite 1.1s ease-out;
+}
+
+.beacon-flash {
+  animation: beacon-flash 0.7s infinite alternate ease-in-out;
+}
+
+.sparkle-twinkle-1 {
+  animation: sparkle-twinkle 1.8s infinite ease-in-out;
+  transform-origin: 80px 26px;
+}
+
+.sparkle-twinkle-2 {
+  animation: sparkle-twinkle 2.2s infinite 0.6s ease-in-out;
+  transform-origin: 22px 33px;
+}
+
+.sparkle-twinkle-3 {
+  animation: sparkle-twinkle 1.5s infinite 1.1s ease-in-out;
+  transform-origin: 78px 42px;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+[data-theme="MATCHA"] ::-webkit-scrollbar-thumb {
+  background: rgba(197, 155, 39, 0.35);
+}
+[data-theme="MATCHA"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(197, 155, 39, 0.55);
+}
+
+[data-theme="SUNSET"] ::-webkit-scrollbar-thumb {
+  background: rgba(197, 34, 47, 0.35);
+}
+[data-theme="SUNSET"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(197, 34, 47, 0.55);
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Mobile Responsive Ergonomics (48px Touch Targets) */
+@media (max-width: 768px) {
+  button, 
+  .btn-clay, 
+  .touch-target,
+  input[type="date"],
+  select {
+    min-height: 48px;
+    touch-action: manipulation;
+  }
+
+  .pill-badge {
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
