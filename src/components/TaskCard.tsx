@@ -314,7 +314,7 @@ export function TaskCard({
                 className="pill-badge pill-badge-urgent"
                 style={{ cursor: canModifyMeta ? 'pointer' : 'default', border: 'none' }}
               >
-                <Zap size={10} /> P0 URGENT
+                <Zap size={10} /> <span className="tabular-numbers">P0</span> URGENT
               </button>
             ) : canModifyMeta && !isDone && (
               <button
@@ -383,24 +383,32 @@ export function TaskCard({
           {/* Subtitle / Assignee / Blocker Details */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginTop: '0.35rem', flexWrap: 'wrap' }}>
             {!isEditingDueDate ? (
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                <span className="pill-badge tabular-numbers">
-                  Due: {task.due_date}
+              (currentUser.role === 'MANAGER' || currentUser.role === 'ADMIN' || isSelfTask) && !isDone ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDueDateInput(task.due_date || '');
+                    setIsEditingDueDate(true);
+                  }}
+                  title={currentUser.role === 'EMPLOYEE' ? 'Change due date' : 'Extend deliverable deadline'}
+                  className="pill-badge tabular-numbers"
+                  style={{
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    border: '1px solid var(--border-subtle)',
+                  }}
+                >
+                  <Calendar size={11} color="var(--text-dim)" />
+                  <span>Due: {task.due_date}</span>
+                </button>
+              ) : (
+                <span className="pill-badge tabular-numbers" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <Calendar size={11} color="var(--text-dim)" />
+                  <span>Due: {task.due_date}</span>
                 </span>
-                {(currentUser.role === 'MANAGER' || currentUser.role === 'ADMIN' || isSelfTask) && !isDone && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDueDateInput(task.due_date || '');
-                      setIsEditingDueDate(true);
-                    }}
-                    title={currentUser.role === 'EMPLOYEE' ? 'Change due date' : 'Extend deliverable deadline'}
-                    style={{ minHeight: '20px', minWidth: '20px', padding: 0, color: 'var(--text-dim)', background: 'transparent', border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}
-                  >
-                    <Calendar size={11} />
-                  </button>
-                )}
-              </div>
+              )
             ) : (
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', background: 'var(--support-pill)', padding: '0.15rem 0.4rem', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
                 <input

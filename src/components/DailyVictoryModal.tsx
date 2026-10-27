@@ -15,10 +15,10 @@ interface DailyVictoryModalProps {
 
 export function DailyVictoryModal({ streak, completedCount, soundEnabled, onClose }: DailyVictoryModalProps) {
   React.useEffect(() => {
-    playSound.pop(soundEnabled);
+    playSound.unblock(soundEnabled);
     confetti({
-      particleCount: 80,
-      spread: 90,
+      particleCount: 100,
+      spread: 95,
       origin: { y: 0.5 },
     });
 
@@ -53,7 +53,7 @@ export function DailyVictoryModal({ streak, completedCount, soundEnabled, onClos
           maxWidth: '440px',
           padding: '2.25rem 1.75rem',
           textAlign: 'center',
-          background: 'var(--bg-card)',
+          background: 'radial-gradient(ellipse at top, rgba(245, 158, 11, 0.15) 0%, rgba(244, 63, 94, 0.08) 50%, var(--bg-card) 100%)',
           borderRadius: '24px',
           border: '1.5px solid var(--border-subtle)',
           boxShadow: 'inset 2.5px 2.5px 5px var(--clay-highlight), inset -2.5px -2.5px 6px var(--clay-inner-shadow), 0 24px 60px -12px rgba(45, 39, 36, 0.18)',

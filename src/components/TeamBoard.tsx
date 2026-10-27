@@ -260,8 +260,18 @@ export function TeamBoard({
 
       {/* 3. People-First Command Grid */}
       <div>
-        <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span>Team Workload & Active Deliverables</span>
+        <h3
+          className="theme-heading section-title-neutral"
+          style={{
+            fontSize: '1.05rem',
+            fontWeight: 800,
+            marginBottom: '0.85rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+          }}
+        >
+          <span>Team Workload &amp; Active Deliverables</span>
         </h3>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1rem' }}>
@@ -307,7 +317,27 @@ export function TeamBoard({
                       {member.name.split(' ').map((n) => n[0]).join('')}
                     </div>
                     <div>
-                      <div style={{ fontWeight: 750, fontSize: '0.96rem', color: 'var(--text-main)' }}>{member.name}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
+                        <span style={{ fontWeight: 750, fontSize: '0.96rem', color: 'var(--text-main)' }}>{member.name}</span>
+                        {member.is_on_leave && (
+                          <span
+                            style={{
+                              fontSize: '0.68rem',
+                              padding: '0.12rem 0.5rem',
+                              borderRadius: '999px',
+                              background: 'rgba(245, 158, 11, 0.15)',
+                              color: 'var(--accent-amber)',
+                              border: '1px solid rgba(245, 158, 11, 0.3)',
+                              fontWeight: 700,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.25rem',
+                            }}
+                          >
+                            🌴 On Leave (Frozen)
+                          </span>
+                        )}
+                      </div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--accent-theme)', fontWeight: 600 }}>{member.designation}</div>
                     </div>
                   </div>
@@ -425,20 +455,20 @@ export function TeamBoard({
                       <div
                         key={t.id}
                         style={{
-                          padding: '0.65rem 0.85rem',
+                          padding: '0.75rem 0.85rem',
                           borderRadius: '12px',
                           background: 'var(--support-pill)',
                           borderLeft: '4px solid var(--accent-theme)',
                           fontSize: '0.84rem',
                           boxShadow: 'inset 1px 1px 2px var(--clay-highlight)',
                           display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
+                          flexDirection: 'column',
                           gap: '0.5rem',
                         }}
                       >
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                        {/* Top Tier: Full-Width Title and Meta */}
+                        <div>
+                          <div style={{ fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', lineHeight: 1.35 }}>
                             <span>{t.title}</span>
                             {isSelfMade && (
                               <span style={{ fontSize: '0.68rem', padding: '0.1rem 0.45rem', borderRadius: '6px', background: 'rgba(139, 92, 246, 0.15)', color: 'var(--accent-purple, #8b5cf6)', fontWeight: 650 }}>
@@ -446,9 +476,9 @@ export function TeamBoard({
                               </span>
                             )}
                           </div>
-                          <div style={{ color: 'var(--text-muted)', fontSize: '0.74rem', marginTop: '0.2rem', fontWeight: 550, display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
+                          <div style={{ color: 'var(--text-muted)', fontSize: '0.74rem', marginTop: '0.25rem', fontWeight: 550, display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
                             <span>Due: <span className="tabular-numbers">{t.due_date}</span></span>
-                            {t.is_urgent && <span>• ⚡ Top Priority</span>}
+                            {t.is_urgent && <span style={{ color: 'var(--accent-red)', fontWeight: 700 }}>• ⚡ P0 Urgent</span>}
                             {t.deadline_extended && (
                               <span style={{ color: 'var(--accent-theme)', fontWeight: 650 }}>
                                 • 🛡️ Extended by Manager
@@ -462,8 +492,9 @@ export function TeamBoard({
                           </div>
                         </div>
 
+                        {/* Bottom Tier: Structured Action Controls */}
                         {(currentUser.role === 'MANAGER' || currentUser.role === 'ADMIN') && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', paddingTop: '0.4rem', borderTop: '1px solid var(--border-subtle)' }}>
                             {onUpdateDueDate && (
                               <button
                                 type="button"
@@ -479,7 +510,7 @@ export function TeamBoard({
                                 title="Extend deliverable deadline"
                                 style={{
                                   fontSize: '0.72rem',
-                                  padding: '0.25rem 0.55rem',
+                                  padding: '0.22rem 0.55rem',
                                   borderRadius: '8px',
                                   background: 'rgba(56, 189, 248, 0.12)',
                                   color: 'var(--accent-theme)',
@@ -487,7 +518,6 @@ export function TeamBoard({
                                   fontWeight: 650,
                                   cursor: 'pointer',
                                   whiteSpace: 'nowrap',
-                                  flexShrink: 0,
                                 }}
                               >
                                 + Extend
@@ -499,7 +529,7 @@ export function TeamBoard({
                               title="Provide revision note on this task"
                               style={{
                                 fontSize: '0.72rem',
-                                padding: '0.25rem 0.6rem',
+                                padding: '0.22rem 0.55rem',
                                 borderRadius: '8px',
                                 background: 'rgba(245, 158, 11, 0.14)',
                                 color: 'var(--accent-amber)',
@@ -507,7 +537,6 @@ export function TeamBoard({
                                 fontWeight: 650,
                                 cursor: 'pointer',
                                 whiteSpace: 'nowrap',
-                                flexShrink: 0,
                               }}
                             >
                               Revise
@@ -523,15 +552,17 @@ export function TeamBoard({
                                 title="Reassign task to another teammate"
                                 style={{
                                   fontSize: '0.72rem',
-                                  padding: '0.25rem 0.45rem',
+                                  padding: '0.22rem 0.45rem',
                                   borderRadius: '8px',
                                   background: 'rgba(139, 92, 246, 0.12)',
                                   color: 'var(--accent-purple, #8b5cf6)',
                                   border: '1px solid rgba(139, 92, 246, 0.35)',
                                   fontWeight: 650,
                                   cursor: 'pointer',
+                                  maxWidth: '120px',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
                                   whiteSpace: 'nowrap',
-                                  flexShrink: 0,
                                 }}
                               >
                                 <option value="" disabled>Reassign ➔</option>
@@ -539,7 +570,7 @@ export function TeamBoard({
                                   .filter((u) => u.is_active !== false && u.id !== member.id)
                                   .map((u) => (
                                     <option key={u.id} value={u.id} style={{ background: 'var(--bg-card)', color: 'var(--text-main)' }}>
-                                      {u.name} ({u.designation})
+                                      {u.name}
                                     </option>
                                   ))}
                               </select>
@@ -557,20 +588,19 @@ export function TeamBoard({
                       <div
                         key={t.id}
                         style={{
-                          padding: '0.65rem 0.85rem',
+                          padding: '0.75rem 0.85rem',
                           borderRadius: '12px',
                           background: 'rgba(245, 158, 11, 0.12)',
                           borderLeft: '4px solid var(--accent-gold)',
                           fontSize: '0.84rem',
                           boxShadow: 'inset 1px 1px 2px var(--clay-highlight)',
                           display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          gap: '0.5rem',
+                          flexDirection: 'column',
+                          gap: '0.45rem',
                         }}
                       >
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                        <div>
+                          <div style={{ fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', lineHeight: 1.35 }}>
                             <span>{t.title}</span>
                             {isSelfMade && (
                               <span style={{ fontSize: '0.68rem', padding: '0.1rem 0.45rem', borderRadius: '6px', background: 'rgba(139, 92, 246, 0.15)', color: 'var(--accent-purple, #8b5cf6)', fontWeight: 650 }}>
@@ -583,20 +613,21 @@ export function TeamBoard({
                           </div>
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={() => onOpenReviewModal(t)}
-                          className="btn-accent"
-                          style={{
-                            fontSize: '0.74rem',
-                            padding: '0.3rem 0.7rem',
-                            borderRadius: '8px',
-                            whiteSpace: 'nowrap',
-                            flexShrink: 0,
-                          }}
-                        >
-                          Review / Revise
-                        </button>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingTop: '0.35rem', borderTop: '1px solid var(--border-subtle)' }}>
+                          <button
+                            type="button"
+                            onClick={() => onOpenReviewModal(t)}
+                            className="btn-accent"
+                            style={{
+                              fontSize: '0.72rem',
+                              padding: '0.22rem 0.65rem',
+                              borderRadius: '8px',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            Review / Revise
+                          </button>
+                        </div>
                       </div>
                     );
                   })}
@@ -608,20 +639,21 @@ export function TeamBoard({
                       <div
                         key={t.id}
                         style={{
-                          padding: '0.55rem 0.85rem',
+                          padding: '0.65rem 0.85rem',
                           borderRadius: '12px',
                           background: 'rgba(16, 185, 129, 0.08)',
                           borderLeft: '4px solid var(--accent-green)',
                           fontSize: '0.82rem',
                           boxShadow: 'inset 1px 1px 2px var(--clay-highlight)',
                           display: 'flex',
-                          justifyContent: 'space-between',
                           alignItems: 'center',
+                          justifyContent: 'space-between',
                           gap: '0.5rem',
+                          flexWrap: 'wrap',
                         }}
                       >
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontWeight: 650, color: 'var(--text-muted)', textDecoration: 'line-through', display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
+                        <div style={{ flex: 1, minWidth: '160px' }}>
+                          <div style={{ fontWeight: 650, color: 'var(--text-muted)', textDecoration: 'line-through', display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap', lineHeight: 1.35 }}>
                             <span>{t.title}</span>
                             {isSelfMade && (
                               <span style={{ fontSize: '0.65rem', textDecoration: 'none', padding: '0.1rem 0.4rem', borderRadius: '5px', background: 'rgba(139, 92, 246, 0.15)', color: 'var(--accent-purple, #8b5cf6)', fontWeight: 600 }}>

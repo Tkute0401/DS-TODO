@@ -176,13 +176,19 @@ export function TaskCreationBar({
                   border: 'none',
                   color: 'var(--text-main)',
                   fontSize: '0.78rem',
+                  fontWeight: 600,
                   cursor: 'pointer',
                   padding: 0,
+                  maxWidth: '160px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  outline: 'none',
                 }}
               >
                 {allUsers.filter((u) => u.is_active !== false).map((u) => (
                   <option key={u.id} value={u.id} style={{ background: 'var(--bg-card)', color: 'var(--text-main)' }}>
-                    {u.name} ({u.designation})
+                    {u.name} ({u.designation}){u.is_on_leave ? ' 🌴 (On Leave)' : ''}
                   </option>
                 ))}
               </select>

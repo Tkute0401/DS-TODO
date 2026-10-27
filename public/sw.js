@@ -1,9 +1,11 @@
-// DYNOTODO PWA Service Worker
-const CACHE_NAME = 'dynotodo-v1';
+// Digital Supremacy Performance OS PWA Service Worker
+const CACHE_NAME = 'ds-performance-v1';
 const PRECACHE_ASSETS = [
   '/',
   '/manifest.json',
-  '/icon.svg',
+  '/ds-icon.png',
+  '/ds-logo.png',
+  '/ds-logo-mobile.png',
   '/favicon.ico',
 ];
 

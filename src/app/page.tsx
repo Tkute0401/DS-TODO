@@ -11,6 +11,7 @@ import { BlockerModal } from '@/components/BlockerModal';
 import { ReviewModal } from '@/components/ReviewModal';
 import { SettingsDrawer } from '@/components/SettingsDrawer';
 import { DailyVictoryModal } from '@/components/DailyVictoryModal';
+import { DynoMascot } from '@/components/DynoMascot';
 import { KudosCelebrationModal } from '@/components/KudosCelebrationModal';
 import { LoginForm } from '@/components/LoginForm';
 import { AlertCircle, CheckCircle2, Zap, AlertTriangle, ListTodo, ShieldAlert, ChevronDown, ChevronUp, Archive, Search, X } from 'lucide-react';
@@ -580,6 +581,7 @@ export default function App() {
         onThemeChange={handleThemeChange}
         onNotificationClick={handleNotificationClick}
         onInstallPWA={deferredPrompt ? handleInstallPWA : undefined}
+        onToggleSound={(enabled) => handleUpdateProfile({ sound_enabled: enabled })}
       />
 
       {/* 2. Blocker Alert Banner (if holding up colleagues) */}
@@ -791,7 +793,7 @@ export default function App() {
             {overdueTasks.length > 0 && (
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--accent-amber)', fontSize: '0.86rem', fontWeight: 750 }}>
+                  <div className="section-title section-title-warning">
                     <AlertTriangle size={15} />
                     <span>🔴 Rolled Over From Yesterday</span>
                   </div>
@@ -823,7 +825,7 @@ export default function App() {
             {urgentTasks.length > 0 && (
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--accent-red)', fontSize: '0.86rem', fontWeight: 750 }}>
+                  <div className="section-title section-title-urgent">
                     <Zap size={15} />
                     <span>Top Priority Focus</span>
                   </div>
@@ -854,7 +856,7 @@ export default function App() {
             {/* Group C: Today's Focus List */}
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--text-main)', fontSize: '0.86rem', fontWeight: 750 }}>
+                <div className="section-title section-title-neutral">
                   <ListTodo size={15} color="var(--accent-theme)" />
                   <span>Today&rsquo;s Focus List</span>
                 </div>
@@ -881,12 +883,75 @@ export default function App() {
                       Clear Filters
                     </button>
                   </div>
+                ) : allTasksDone && completedTasks.length > 0 ? (
+                  <div
+                    className="glass-panel"
+                    style={{
+                      padding: '2.5rem 1.75rem',
+                      textAlign: 'center',
+                      background: 'radial-gradient(ellipse at top, rgba(245, 158, 11, 0.12) 0%, rgba(244, 63, 94, 0.06) 50%, var(--bg-card) 100%)',
+                      borderRadius: '24px',
+                      border: '1.5px solid var(--border-subtle)',
+                      boxShadow: 'inset 2px 2px 4px var(--clay-highlight), 0 16px 36px rgba(45, 39, 36, 0.1)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '0.9rem',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <DynoMascot dynamicMood="celebrate" size="lg" interactive={true} />
+                    </div>
+                    <div>
+                      <div
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.35rem',
+                          color: 'var(--accent-theme)',
+                          fontSize: '0.8rem',
+                          fontWeight: 750,
+                          padding: '0.25rem 0.8rem',
+                          borderRadius: '999px',
+                          background: 'var(--support-pill)',
+                          border: '1px solid var(--border-subtle)',
+                          marginBottom: '0.5rem',
+                        }}
+                      >
+                        🌴 SUNSET LOUNGE · ALL CLEAR FOR TODAY
+                      </div>
+                      <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 0.4rem 0' }}>
+                        Work is Done for Today!
+                      </h3>
+                      <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', maxWidth: '440px', margin: '0 auto', lineHeight: 1.5 }}>
+                        {completedTasks.length} {completedTasks.length === 1 ? 'deliverable' : 'deliverables'} crushed today • Streak: {currentUser.current_streak}d intact. Shut down your laptop and go recharge!
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowVictoryModal(true)}
+                      className="btn-accent"
+                      style={{
+                        padding: '0.55rem 1.35rem',
+                        borderRadius: '12px',
+                        fontSize: '0.86rem',
+                        fontWeight: 750,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.45rem',
+                        marginTop: '0.25rem',
+                      }}
+                    >
+                      <span>🎊 Replay Victory Celebration</span>
+                    </button>
+                  </div>
                 ) : (
                   <div className="glass-panel" style={{ padding: '3.25rem 1.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                    <div style={{ fontSize: '2.8rem', marginBottom: '0.65rem' }}>🍵</div>
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: 750, color: 'var(--text-main)', marginBottom: '0.35rem' }}>All Clear for Now!</h3>
+                    <div style={{ fontSize: '2.8rem', marginBottom: '0.65rem' }}>☕</div>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 750, color: 'var(--text-main)', marginBottom: '0.35rem' }}>Ready to Ship Deliverables</h3>
                     <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', maxWidth: '420px', margin: '0 auto', lineHeight: 1.5 }}>
-                      Every deliverable for today is completed. Use the quick creator above to add a new task, or take a well-deserved break!
+                      No active tasks currently queued. Type a concrete deliverable title above and press Enter to start your flow.
                     </p>
                   </div>
                 )
@@ -917,7 +982,7 @@ export default function App() {
             {completedTasks.length > 0 && (
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--accent-green)', fontSize: '0.86rem', fontWeight: 750 }}>
+                  <div className="section-title section-title-success">
                     <CheckCircle2 size={15} />
                     <span>Done &amp; Dusted ✨</span>
                   </div>

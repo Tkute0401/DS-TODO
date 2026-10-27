@@ -124,18 +124,18 @@
   --text-dim: #5c7361;
   --support-pill: #f3efe4;
 
-  --accent-theme: #1b4d2e;
-  --accent-contrast: #ffffff;
-  --accent-glow: rgba(27, 77, 46, 0.32);
-  --accent-gradient: linear-gradient(135deg, #24633b 0%, #153c24 100%);
-  --accent-hover: #24633b;
+  --accent-theme: #c59b27;
+  --accent-contrast: #142217;
+  --accent-glow: rgba(197, 155, 39, 0.35);
+  --accent-gradient: linear-gradient(135deg, #d4a738 0%, #aa801b 100%);
+  --accent-hover: #dfb648;
   --theme-chip-bg: rgba(197, 155, 39, 0.16);
 
-  --accent-red: #c0392b;
-  --accent-amber: #c59b27;
-  --accent-green: #1b4d2e;
+  --accent-red: #d94e4e;
+  --accent-amber: #e5a93c;
+  --accent-green: #38d39f;
   --accent-gold: #c59b27;
-  --accent-purple: #5c3c75;
+  --accent-purple: #8b5cf6;
 }
 
 /* -------------------------------------------------------------
@@ -229,6 +229,15 @@ h1, h2, h3, h4, h5, h6 {
 [data-theme="MATCHA"] .theme-heading {
   font-family: 'Playfair Display', Baskerville, Georgia, serif;
   letter-spacing: -0.01em;
+  color: #fdfaf3 !important;
+}
+
+/* Inside white/cream cards in MATCHA theme, text is deep botanical ivy */
+[data-theme="MATCHA"] .glass-panel h1,
+[data-theme="MATCHA"] .glass-panel h2,
+[data-theme="MATCHA"] .glass-panel h3,
+[data-theme="MATCHA"] .glass-panel h4 {
+  color: #142217 !important;
 }
 
 [data-theme="SUNSET"] h1,
@@ -238,6 +247,117 @@ h1, h2, h3, h4, h5, h6 {
 [data-theme="SUNSET"] .theme-heading {
   font-family: 'Cinzel', 'Playfair Display', Georgia, serif;
   letter-spacing: 0.02em;
+  color: #f1f3f7 !important;
+}
+
+/* Section Titles & Ground Typography */
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.86rem;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+
+.section-title-warning {
+  color: var(--accent-amber);
+}
+
+.section-title-urgent {
+  color: var(--accent-red);
+}
+
+.section-title-neutral {
+  color: var(--text-main);
+}
+
+.section-title-success {
+  color: var(--accent-green);
+}
+
+/* In MATCHA (Victorian), ground background is deep botanical ivy #1e2f23.
+   Headings & section titles outside cards glow with luminous warmth */
+[data-theme="MATCHA"] .section-title-neutral {
+  color: #fdfaf3 !important;
+}
+
+[data-theme="MATCHA"] .section-title-warning {
+  color: #fbbf24 !important;
+}
+
+[data-theme="MATCHA"] .section-title-urgent {
+  color: #f87171 !important;
+}
+
+[data-theme="MATCHA"] .section-title-success {
+  color: #38d39f !important;
+}
+
+/* In GOTHIC (Sunset), ground is obsidian #0a0a0f */
+[data-theme="SUNSET"] .section-title-neutral {
+  color: #f1f3f7 !important;
+}
+
+[data-theme="SUNSET"] .section-title-warning {
+  color: #f59e0b !important;
+}
+
+[data-theme="SUNSET"] .section-title-urgent {
+  color: #ff4757 !important;
+}
+
+[data-theme="SUNSET"] .section-title-success {
+  color: #2ed573 !important;
+}
+
+/* In DIGITAL (Minimal), ground is deep navy #0b0f17 */
+[data-theme="MINIMAL"] .section-title-neutral {
+  color: #f1f5f9 !important;
+}
+
+/* Pill badges on dark backgrounds */
+[data-theme="MATCHA"] .pill-badge {
+  background: #fcf9f2;
+  color: #142217;
+  border-color: rgba(197, 155, 39, 0.35);
+}
+
+[data-theme="MATCHA"] .pill-badge-warning {
+  background: rgba(245, 158, 11, 0.22) !important;
+  color: #fcd34d !important;
+  border-color: rgba(245, 158, 11, 0.5) !important;
+}
+
+[data-theme="MATCHA"] .pill-badge-urgent {
+  background: rgba(239, 68, 68, 0.22) !important;
+  color: #fca5a5 !important;
+  border-color: rgba(239, 68, 68, 0.5) !important;
+}
+
+[data-theme="MATCHA"] .pill-badge-success {
+  background: rgba(56, 211, 159, 0.22) !important;
+  color: #6ee7b7 !important;
+  border-color: rgba(56, 211, 159, 0.5) !important;
+}
+
+[data-theme="SUNSET"] .pill-badge-success {
+  background: rgba(46, 213, 115, 0.2) !important;
+  color: #6ee7b7 !important;
+  border-color: rgba(46, 213, 115, 0.5) !important;
+}
+
+/* Digital Supremacy Brand Logo Adaptation across Light & Dark Navbars */
+.nav-brand-logo {
+  transition: filter 0.25s ease;
+}
+
+[data-theme="CYBERPUNK"] .nav-brand-logo {
+  filter: brightness(0) saturate(100%) invert(18%) sepia(50%) saturate(3000%) hue-rotate(255deg) brightness(75%) contrast(110%);
+}
+
+[data-theme="MATCHA"] .nav-brand-logo {
+  filter: brightness(0) saturate(100%) invert(14%) sepia(35%) saturate(1400%) hue-rotate(95deg) brightness(85%) contrast(110%);
 }
 
 /* Tabular numbers for dates, metrics, and streaks */

@@ -35,6 +35,7 @@ interface NavbarProps {
   allTasksDone: boolean;
   onThemeChange?: (theme: ThemeSkin) => void;
   onInstallPWA?: () => void;
+  onToggleSound?: (enabled: boolean) => void;
 }
 
 const THEME_OPTIONS: { id: ThemeSkin; code: string; label: string; dot: string; tooltip: string }[] = [
@@ -60,6 +61,7 @@ export function Navbar({
   allTasksDone,
   onThemeChange,
   onInstallPWA,
+  onToggleSound,
 }: NavbarProps) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -118,6 +120,7 @@ export function Navbar({
           <img
             src="/ds-logo.png"
             alt="Digital Supremacy"
+            className="nav-brand-logo"
             style={{
               height: '24px',
               width: 'auto',
@@ -273,7 +276,11 @@ export function Navbar({
           <button
             onClick={() => {
               const next = !user.sound_enabled;
-              user.sound_enabled = next;
+              if (onToggleSound) {
+                onToggleSound(next);
+              } else {
+                user.sound_enabled = next;
+              }
               if (next) playSound.pop(true);
             }}
             title={user.sound_enabled ? 'Mute Sounds' : 'Unmute Sounds'}
