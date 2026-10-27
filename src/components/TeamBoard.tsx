@@ -318,7 +318,9 @@ export function TeamBoard({
                     </div>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
-                        <span style={{ fontWeight: 750, fontSize: '0.96rem', color: 'var(--text-main)' }}>{member.name}</span>
+                        <span title={member.name} style={{ fontWeight: 750, fontSize: '0.96rem', color: 'var(--text-main)', whiteSpace: 'nowrap' }}>
+                          {member.name.split(' ')[0]}
+                        </span>
                         {member.is_on_leave && (
                           <span
                             style={{

@@ -314,7 +314,7 @@ export function TaskCard({
                 className="pill-badge pill-badge-urgent"
                 style={{ cursor: canModifyMeta ? 'pointer' : 'default', border: 'none' }}
               >
-                <Zap size={10} /> <span className="tabular-numbers">P0</span> URGENT
+                <Zap size={10} /> <span style={{ fontFamily: 'var(--font-geist-mono), monospace', fontWeight: 800, letterSpacing: '-0.02em' }}>P0</span> URGENT
               </button>
             ) : canModifyMeta && !isDone && (
               <button

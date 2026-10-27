@@ -188,7 +188,7 @@ export function TaskCreationBar({
               >
                 {allUsers.filter((u) => u.is_active !== false).map((u) => (
                   <option key={u.id} value={u.id} style={{ background: 'var(--bg-card)', color: 'var(--text-main)' }}>
-                    {u.name} ({u.designation}){u.is_on_leave ? ' 🌴 (On Leave)' : ''}
+                    {u.name.split(' ')[0]} ({u.role === 'ADMIN' ? 'Admin' : u.designation.split(' ')[0]}){u.is_on_leave ? ' 🌴' : ''}
                   </option>
                 ))}
               </select>

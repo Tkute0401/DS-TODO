@@ -146,7 +146,7 @@ export function Navbar({
         {(user.role === 'MANAGER' || user.role === 'ADMIN') && (
           <div style={{ 
             display: 'flex', 
-            background: 'var(--bg-secondary)', 
+            background: 'var(--support-pill)', 
             padding: '3px', 
             borderRadius: '14px',
             border: '1px solid var(--border-subtle)',
@@ -198,7 +198,7 @@ export function Navbar({
             style={{
               display: 'flex',
               alignItems: 'center',
-              background: 'var(--bg-secondary)',
+              background: 'var(--support-pill)',
               padding: '3px',
               borderRadius: '14px',
               border: '1px solid var(--border-subtle)',

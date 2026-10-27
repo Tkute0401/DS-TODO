@@ -366,7 +366,8 @@ input[type="date"],
 .streak-counter,
 .metric-value,
 kbd {
-  font-variant-numeric: tabular-nums lining-nums;
+  font-variant-numeric: tabular-nums lining-nums slashed-zero;
+  font-feature-settings: "zero" 1, "tnum" 1;
 }
 
 /* Buttons & Touch Ergonomics - Soft Tactile Clay Cushion */
