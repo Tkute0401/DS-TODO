@@ -15,8 +15,10 @@ import {
   Archive,
   Trash2,
   AlertTriangle,
-  X
+  X,
+  ListTodo
 } from 'lucide-react';
+import { EmployeeHistoryModal } from './EmployeeHistoryModal';
 
 interface TeamBoardProps {
   currentUser: User;
@@ -47,6 +49,7 @@ export function TeamBoard({
 }: TeamBoardProps) {
   const [memberToDelete, setMemberToDelete] = useState<User | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [historyMember, setHistoryMember] = useState<User | null>(null);
   // Review queue: all tasks pending verification
   const [editingDueDateTaskId, setEditingDueDateTaskId] = useState<string | null>(null);
   const [extendDateInput, setExtendDateInput] = useState<string>('');
@@ -755,6 +758,32 @@ export function TeamBoard({
                   )}
                 </div>
 
+                {/* View Full History & Deliverables Button */}
+                <button
+                  type="button"
+                  onClick={() => setHistoryMember(member)}
+                  style={{
+                    width: '100%',
+                    background: 'var(--support-pill)',
+                    border: '1px solid var(--border-subtle)',
+                    padding: '0.45rem 0.75rem',
+                    minHeight: '36px',
+                    borderRadius: '12px',
+                    fontSize: '0.78rem',
+                    color: 'var(--accent-theme)',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.4rem',
+                    boxShadow: 'inset 1px 1px 2px var(--clay-highlight)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <ListTodo size={14} />
+                  <span>View Full Task History ({memberTasks.length})</span>
+                </button>
+
                 {/* Footer: Quick Assign Button */}
                 <button
                   onClick={() => onOpenAssignModal(member.id)}
@@ -869,6 +898,23 @@ export function TeamBoard({
             </div>
           </div>
         </div>
+      )}
+
+      {/* 4. Employee Full History & Paginated Task Modal */}
+      {historyMember && (
+        <EmployeeHistoryModal
+          member={historyMember}
+          tasks={allTasks.filter((t) => t.assignee_id === historyMember.id)}
+          allUsers={allUsers}
+          currentUser={currentUser}
+          onClose={() => setHistoryMember(null)}
+          onOpenReviewModal={(task) => {
+            setHistoryMember(null);
+            onOpenReviewModal(task);
+          }}
+          onUpdateDueDate={onUpdateDueDate}
+          onReassignTask={onReassignTask}
+        />
       )}
     </div>
   );
