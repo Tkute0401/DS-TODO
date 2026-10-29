@@ -38,6 +38,14 @@ export default function App() {
   const [showArchive, setShowArchive] = useState(false);
   const [celebratingKudos, setCelebratingKudos] = useState<{ badge: KudosType; taskTitle: string; managerName: string } | null>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [adminScope, setAdminScope] = useState<'all' | 'my'>('all');
+  const [filterMemberId, setFilterMemberId] = useState<string | null>(null);
+  const [toastError, setToastError] = useState<string | null>(null);
+
+  const showErrorToast = (msg: string) => {
+    setToastError(msg);
+    setTimeout(() => setToastError(null), 4500);
+  };
 
   // Load user session
   const fetchSession = async () => {
@@ -67,8 +75,9 @@ export default function App() {
       const uData = await uRes.json();
       if (uData.users) setAllUsers(uData.users);
 
-      // 2. Fetch Tasks (strict role-based query)
-      const tRes = await fetch(`/api/tasks?view=${viewMode}`);
+      // 2. Fetch Tasks (Admins and Managers fetch all company tasks, employees fetch isolated tasks)
+      const viewQuery = (currentUser.role === 'MANAGER' || currentUser.role === 'ADMIN') ? 'all' : 'my';
+      const tRes = await fetch(`/api/tasks?view=${viewQuery}`);
       const tData = await tRes.json();
       if (tData.tasks) setTasks(tData.tasks);
 
@@ -213,10 +222,10 @@ export default function App() {
         await fetchData();
       } else {
         const err = await res.json();
-        alert(err.error || 'Failed to update due date');
+        showErrorToast(err.error || 'Failed to update due date');
       }
     } catch {
-      alert('Network error updating deadline');
+      showErrorToast('Network error updating deadline');
     }
   };
 
@@ -232,10 +241,10 @@ export default function App() {
         await fetchData();
       } else {
         const err = await res.json();
-        alert(err.error || 'Failed to update deliverable title');
+        showErrorToast(err.error || 'Failed to update deliverable title');
       }
     } catch {
-      alert('Network error updating title');
+      showErrorToast('Network error updating title');
     }
   };
 
@@ -251,10 +260,10 @@ export default function App() {
         await fetchData();
       } else {
         const err = await res.json();
-        alert(err.error || 'Failed to update priority');
+        showErrorToast(err.error || 'Failed to update priority');
       }
     } catch {
-      alert('Network error updating priority');
+      showErrorToast('Network error updating priority');
     }
   };
 
@@ -270,10 +279,10 @@ export default function App() {
         await fetchData();
       } else {
         const err = await res.json();
-        alert(err.error || 'Failed to reassign task');
+        showErrorToast(err.error || 'Failed to reassign task');
       }
     } catch {
-      alert('Network error reassigning deliverable');
+      showErrorToast('Network error reassigning deliverable');
     }
   };
 
@@ -434,10 +443,10 @@ export default function App() {
         await fetchData();
       } else {
         const err = await res.json();
-        alert(err.error || 'Failed to update employee status');
+        showErrorToast(err.error || 'Failed to update employee status');
       }
     } catch {
-      alert('Network error updating employee');
+      showErrorToast('Network error updating employee');
     }
   };
 
@@ -451,10 +460,10 @@ export default function App() {
         await fetchData();
       } else {
         const err = await res.json();
-        alert(err.error || 'Failed to delete employee');
+        showErrorToast(err.error || 'Failed to delete employee');
       }
     } catch {
-      alert('Network error deleting employee');
+      showErrorToast('Network error deleting employee');
     }
   };
 
@@ -514,13 +523,23 @@ export default function App() {
   // Active workforce members (excluding archived)
   const activeUsers = allUsers.filter((u) => u.is_active !== false);
 
-  // Filter tasks with search and status criteria
+  // Filter tasks with search, status, and role-based scope
   const displayedTasks = tasks.filter((t) => {
+    // Manager/Admin scoping: All tasks vs My tasks vs Filter by employee
+    if (currentUser.role === 'MANAGER' || currentUser.role === 'ADMIN') {
+      if (filterMemberId) {
+        if (t.assignee_id !== filterMemberId) return false;
+      } else if (adminScope === 'my') {
+        if (t.assignee_id !== currentUser.id) return false;
+      }
+    }
+
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       const matchTitle = t.title.toLowerCase().includes(q);
       const matchCreator = t.creator_name?.toLowerCase().includes(q);
-      if (!matchTitle && !matchCreator) return false;
+      const matchAssignee = t.assignee_name?.toLowerCase().includes(q);
+      if (!matchTitle && !matchCreator && !matchAssignee) return false;
     }
     if (statusFilter === 'ACTIVE') return t.status === 'TODO' || (t.status === 'IN_PROGRESS' && !t.active_blocker);
     if (statusFilter === 'BLOCKED') return Boolean(t.active_blocker);
@@ -528,6 +547,16 @@ export default function App() {
     if (statusFilter === 'DONE') return t.status === 'DONE';
     return true;
   });
+
+  // Today's Flow metrics computed with respect to active scope
+  const flowTasks = (currentUser.role === 'MANAGER' || currentUser.role === 'ADMIN') && adminScope === 'all' && !filterMemberId
+    ? tasks
+    : filterMemberId
+    ? tasks.filter(t => t.assignee_id === filterMemberId)
+    : tasks.filter(t => t.assignee_id === currentUser.id);
+
+  const completedFlowTasks = flowTasks.filter(t => t.status === 'DONE');
+  const flowPct = flowTasks.length > 0 ? Math.round((completedFlowTasks.length / flowTasks.length) * 100) : 100;
 
   const getLocalDateString = (d: Date = new Date()) => {
     const year = d.getFullYear();
@@ -624,10 +653,10 @@ export default function App() {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '2px' }}>
                 <span className="tabular-numbers" style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                  {tasks.length > 0 ? Math.round((completedTasks.length / tasks.length) * 100) : 100}%
+                  {flowPct}%
                 </span>
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 550 }}>
-                  ({completedTasks.length} of {tasks.length} Completed)
+                  ({completedFlowTasks.length} of {flowTasks.length} Completed)
                 </span>
               </div>
             </div>
@@ -647,7 +676,7 @@ export default function App() {
               <div
                 style={{
                   height: '100%',
-                  width: `${tasks.length > 0 ? (completedTasks.length / tasks.length) * 100 : 100}%`,
+                  width: `${flowPct}%`,
                   background: 'var(--accent-theme)',
                   borderRadius: '999px',
                   transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -665,13 +694,19 @@ export default function App() {
                 {activeUsers.slice(0, 5).map((u, i) => (
                   <div
                     key={u.id}
-                    title={`${u.name} (${u.designation})`}
+                    onClick={() => {
+                      if (currentUser.role === 'MANAGER' || currentUser.role === 'ADMIN') {
+                        setFilterMemberId(filterMemberId === u.id ? null : u.id);
+                        if (filterMemberId !== u.id) setAdminScope('all');
+                      }
+                    }}
+                    title={`${u.name} (${u.designation})${currentUser.role !== 'EMPLOYEE' ? ' - Click to filter deliverables' : ''}`}
                     style={{
                       width: '26px',
                       height: '26px',
                       borderRadius: '50%',
                       background: u.id === currentUser.id ? 'var(--accent-theme)' : 'var(--support-pill)',
-                      border: '2px solid var(--bg-card)',
+                      border: filterMemberId === u.id ? '2px solid var(--accent-theme)' : '2px solid var(--bg-card)',
                       color: u.id === currentUser.id ? 'var(--accent-contrast)' : 'var(--text-muted)',
                       display: 'flex',
                       alignItems: 'center',
@@ -679,7 +714,11 @@ export default function App() {
                       fontSize: '0.64rem',
                       fontWeight: 750,
                       marginLeft: i > 0 ? '-6px' : '0',
-                      boxShadow: '0 2px 5px rgba(45,39,36,0.06)',
+                      boxShadow: filterMemberId === u.id ? '0 0 10px var(--accent-theme)' : '0 2px 5px rgba(45,39,36,0.06)',
+                      cursor: currentUser.role !== 'EMPLOYEE' ? 'pointer' : 'default',
+                      transform: filterMemberId === u.id ? 'scale(1.15)' : 'none',
+                      zIndex: filterMemberId === u.id ? 10 : 1,
+                      transition: 'all 0.16s ease',
                     }}
                   >
                     {u.name.substring(0, 2).toUpperCase()}
@@ -709,6 +748,118 @@ export default function App() {
               onCreateTask={handleCreateTask}
               soundEnabled={currentUser.sound_enabled}
             />
+
+            {/* Manager / Admin Scope Switcher & Employee Filter Bar */}
+            {(currentUser.role === 'MANAGER' || currentUser.role === 'ADMIN') && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '0.6rem',
+                  flexWrap: 'wrap',
+                  padding: '0.5rem 0.75rem',
+                  borderRadius: '14px',
+                  background: 'var(--support-pill)',
+                  border: '1px solid var(--border-subtle)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    View Scope:
+                  </span>
+                  <div style={{ display: 'inline-flex', background: 'var(--bg-card)', padding: '2px', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAdminScope('all');
+                        setFilterMemberId(null);
+                      }}
+                      style={{
+                        padding: '0.25rem 0.65rem',
+                        minHeight: '28px',
+                        borderRadius: '8px',
+                        fontSize: '0.76rem',
+                        fontWeight: adminScope === 'all' && !filterMemberId ? 750 : 600,
+                        background: adminScope === 'all' && !filterMemberId ? 'var(--support-pill)' : 'transparent',
+                        color: adminScope === 'all' && !filterMemberId ? 'var(--accent-theme)' : 'var(--text-muted)',
+                        border: adminScope === 'all' && !filterMemberId ? '1px solid var(--border-subtle)' : '1px solid transparent',
+                      }}
+                    >
+                      🌐 All Tasks ({tasks.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAdminScope('my');
+                        setFilterMemberId(null);
+                      }}
+                      style={{
+                        padding: '0.25rem 0.65rem',
+                        minHeight: '28px',
+                        borderRadius: '8px',
+                        fontSize: '0.76rem',
+                        fontWeight: adminScope === 'my' ? 750 : 600,
+                        background: adminScope === 'my' ? 'var(--support-pill)' : 'transparent',
+                        color: adminScope === 'my' ? 'var(--accent-theme)' : 'var(--text-muted)',
+                        border: adminScope === 'my' ? '1px solid var(--border-subtle)' : '1px solid transparent',
+                      }}
+                    >
+                      👤 My Tasks ({tasks.filter(t => t.assignee_id === currentUser.id).length})
+                    </button>
+                  </div>
+                </div>
+
+                {/* Filter by Member Dropdown */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginLeft: 'auto' }}>
+                  <select
+                    value={filterMemberId || ''}
+                    onChange={(e) => {
+                      const id = e.target.value || null;
+                      setFilterMemberId(id);
+                      if (id) setAdminScope('all');
+                    }}
+                    style={{
+                      padding: '0.3rem 0.6rem',
+                      minHeight: '28px',
+                      borderRadius: '8px',
+                      background: 'var(--bg-card)',
+                      border: '1px solid var(--border-subtle)',
+                      fontSize: '0.76rem',
+                      fontWeight: 650,
+                      color: filterMemberId ? 'var(--accent-theme)' : 'var(--text-muted)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <option value="">Filter by Employee (All)</option>
+                    {activeUsers.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.name} ({u.designation})
+                      </option>
+                    ))}
+                  </select>
+                  {filterMemberId && (
+                    <button
+                      type="button"
+                      onClick={() => setFilterMemberId(null)}
+                      title="Clear employee filter"
+                      style={{
+                        padding: '0.2rem 0.45rem',
+                        minHeight: '28px',
+                        borderRadius: '8px',
+                        background: 'transparent',
+                        border: '1px solid var(--border-subtle)',
+                        fontSize: '0.72rem',
+                        color: 'var(--text-dim)',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Clear ✕
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Quick Search & Status Filter Bar */}
             <div
@@ -1140,6 +1291,47 @@ export default function App() {
           soundEnabled={currentUser.sound_enabled}
           onClose={() => setCelebratingKudos(null)}
         />
+      )}
+
+      {/* Lightweight Non-Blocking Error Toast Notification */}
+      {toastError && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: '1.5rem',
+            right: '1.5rem',
+            maxWidth: '380px',
+            background: 'rgba(239, 68, 68, 0.95)',
+            color: '#ffffff',
+            padding: '0.75rem 1rem',
+            borderRadius: '12px',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.6rem',
+            zIndex: 999999,
+            fontSize: '0.84rem',
+            fontWeight: 650,
+            animation: 'fadeIn 0.2s ease-out',
+          }}
+        >
+          <AlertCircle size={16} />
+          <span style={{ flex: 1 }}>{toastError}</span>
+          <button
+            type="button"
+            onClick={() => setToastError(null)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: '#ffffff',
+              padding: '0.1rem',
+              cursor: 'pointer',
+            }}
+          >
+            <X size={14} />
+          </button>
+        </div>
       )}
 
     </div>

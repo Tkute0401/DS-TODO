@@ -14,7 +14,8 @@ import {
   Flame,
   Archive,
   Trash2,
-  AlertTriangle
+  AlertTriangle,
+  X
 } from 'lucide-react';
 
 interface TeamBoardProps {
@@ -47,6 +48,9 @@ export function TeamBoard({
   const [memberToDelete, setMemberToDelete] = useState<User | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   // Review queue: all tasks pending verification
+  const [editingDueDateTaskId, setEditingDueDateTaskId] = useState<string | null>(null);
+  const [extendDateInput, setExtendDateInput] = useState<string>('');
+
   const reviewTasks = allTasks.filter((t) => t.status === 'NEEDS_REVIEW');
 
   // Active blockers across firm
@@ -498,32 +502,83 @@ export function TeamBoard({
                         {(currentUser.role === 'MANAGER' || currentUser.role === 'ADMIN') && (
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', paddingTop: '0.4rem', borderTop: '1px solid var(--border-subtle)' }}>
                             {onUpdateDueDate && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const parts = t.due_date.split('-').map(Number);
-                                  const nextDay = new Date(parts[0], parts[1] - 1, parts[2] + 1);
-                                  const formatted = `${nextDay.getFullYear()}-${String(nextDay.getMonth() + 1).padStart(2, '0')}-${String(nextDay.getDate()).padStart(2, '0')}`;
-                                  const newDate = window.prompt(`Extend deadline for "${t.title}" (YYYY-MM-DD):`, formatted);
-                                  if (newDate && newDate.trim()) {
-                                    onUpdateDueDate(t.id, newDate.trim());
-                                  }
-                                }}
-                                title="Extend deliverable deadline"
-                                style={{
-                                  fontSize: '0.72rem',
-                                  padding: '0.22rem 0.55rem',
-                                  borderRadius: '8px',
-                                  background: 'rgba(56, 189, 248, 0.12)',
-                                  color: 'var(--accent-theme)',
-                                  border: '1px solid rgba(56, 189, 248, 0.3)',
-                                  fontWeight: 650,
-                                  cursor: 'pointer',
-                                  whiteSpace: 'nowrap',
-                                }}
-                              >
-                                + Extend
-                              </button>
+                              editingDueDateTaskId === t.id ? (
+                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: 'var(--support-pill)', padding: '0.15rem 0.35rem', borderRadius: '8px', border: '1px solid var(--border-subtle)' }}>
+                                  <input
+                                    type="date"
+                                    autoFocus
+                                    value={extendDateInput}
+                                    onChange={(e) => setExtendDateInput(e.target.value)}
+                                    style={{
+                                      fontSize: '0.72rem',
+                                      background: 'transparent',
+                                      border: 'none',
+                                      color: 'var(--text-main)',
+                                      padding: '0 0.15rem',
+                                      outline: 'none',
+                                    }}
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={async () => {
+                                      if (extendDateInput.trim()) {
+                                        await onUpdateDueDate(t.id, extendDateInput.trim());
+                                      }
+                                      setEditingDueDateTaskId(null);
+                                    }}
+                                    style={{
+                                      background: 'var(--accent-theme)',
+                                      color: 'var(--accent-contrast)',
+                                      border: 'none',
+                                      borderRadius: '4px',
+                                      fontSize: '0.66rem',
+                                      fontWeight: 700,
+                                      padding: '0.12rem 0.4rem',
+                                      cursor: 'pointer',
+                                    }}
+                                  >
+                                    Save
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setEditingDueDateTaskId(null)}
+                                    style={{
+                                      background: 'transparent',
+                                      border: 'none',
+                                      color: 'var(--text-dim)',
+                                      padding: '0.1rem',
+                                      cursor: 'pointer',
+                                    }}
+                                  >
+                                    <X size={11} />
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const parts = t.due_date.split('-').map(Number);
+                                    const nextDay = new Date(parts[0], parts[1] - 1, parts[2] + 1);
+                                    const formatted = `${nextDay.getFullYear()}-${String(nextDay.getMonth() + 1).padStart(2, '0')}-${String(nextDay.getDate()).padStart(2, '0')}`;
+                                    setExtendDateInput(formatted);
+                                    setEditingDueDateTaskId(t.id);
+                                  }}
+                                  title="Extend deliverable deadline"
+                                  style={{
+                                    fontSize: '0.72rem',
+                                    padding: '0.22rem 0.55rem',
+                                    borderRadius: '8px',
+                                    background: 'rgba(56, 189, 248, 0.12)',
+                                    color: 'var(--accent-theme)',
+                                    border: '1px solid rgba(56, 189, 248, 0.3)',
+                                    fontWeight: 650,
+                                    cursor: 'pointer',
+                                    whiteSpace: 'nowrap',
+                                  }}
+                                >
+                                  + Extend
+                                </button>
+                              )
                             )}
                             <button
                               type="button"

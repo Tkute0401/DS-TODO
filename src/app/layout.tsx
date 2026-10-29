@@ -46,7 +46,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="en" data-theme="OBSIDIAN" className={`${geistSans.variable} ${geistMono.variable}`}>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/ds-icon.png" type="image/png" sizes="333x294" />
@@ -63,7 +63,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body>{children}</body>
+      <body data-theme="OBSIDIAN">{children}</body>
     </html>
   );
 }

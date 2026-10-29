@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { User, NotificationItem, ThemeSkin } from '@/types';
 import { playSound } from '@/lib/sound';
 import { DynoMascot, MascotMood } from './DynoMascot';
@@ -68,6 +69,11 @@ export function Navbar({
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showMobileDrawer, setShowMobileDrawer] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   React.useEffect(() => {
@@ -562,8 +568,8 @@ export function Navbar({
         </div>
       </div>
 
-      {/* Slide-out Mobile Navigation Drawer */}
-      {showMobileDrawer && (
+      {/* Slide-out Mobile Navigation Drawer (Portalled to document.body to prevent containing block trap from backdrop-filter) */}
+      {isMounted && showMobileDrawer && createPortal(
         <div
           className="mobile-drawer-overlay"
           onClick={(e) => {
@@ -836,7 +842,8 @@ export function Navbar({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </header>

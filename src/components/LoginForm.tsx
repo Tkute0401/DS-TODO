@@ -64,7 +64,7 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
         alignItems: 'center',
         justifyContent: 'center',
         background: 'var(--bg-primary)',
-        padding: '1.5rem',
+        padding: '1rem',
         position: 'relative',
         overflow: 'hidden',
       }}
@@ -85,11 +85,10 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
       />
 
       <div
-        className="glass-panel"
+        className="glass-panel login-card-responsive"
         style={{
           width: '100%',
           maxWidth: '440px',
-          padding: '2.25rem 2rem',
           borderRadius: '24px',
           border: '1.5px solid var(--border-subtle)',
           boxShadow: 'inset 2px 2px 5px var(--clay-highlight), 0 24px 60px -12px var(--clay-drop-shadow)',

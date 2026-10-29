@@ -535,21 +535,32 @@ button {
   transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-button:hover {
-  transform: translateY(-1.5px);
-  border-color: var(--border-active);
-  box-shadow: 
-    inset 1.5px 1.5px 3px var(--clay-highlight),
-    inset -1.5px -1.5px 3px var(--clay-inner-shadow),
-    0 7px 18px -2px var(--clay-drop-shadow);
+@media (hover: hover) and (pointer: fine) {
+  button:not(.btn-unstyled):not(.btn-icon):not(.task-checkbox-btn):hover {
+    transform: translateY(-1.5px);
+    border-color: var(--border-active);
+    box-shadow: 
+      inset 1.5px 1.5px 3px var(--clay-highlight),
+      inset -1.5px -1.5px 3px var(--clay-inner-shadow),
+      0 7px 18px -2px var(--clay-drop-shadow);
+  }
 }
 
-button:active {
+button:not(.task-checkbox-btn):not(.btn-unstyled):active {
   transform: translateY(1px) scale(0.97);
   box-shadow: 
     inset 2px 2px 4px var(--clay-inner-shadow),
     inset -1px -1px 2px var(--clay-highlight),
     0 1px 3px var(--clay-drop-shadow-soft);
+}
+
+.task-checkbox-btn {
+  transform: none !important;
+  box-shadow: inset 1px 1px 2px var(--clay-highlight) !important;
+}
+.task-checkbox-btn:hover,
+.task-checkbox-btn:active {
+  transform: none !important;
 }
 
 button:disabled {
@@ -1044,27 +1055,42 @@ kbd {
 .mobile-drawer-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(20, 16, 28, 0.55);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  z-index: 100;
-  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background: rgba(10, 11, 16, 0.78);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 99999;
+  animation: fadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   justify-content: flex-end;
 }
 .mobile-drawer-panel {
   width: 86vw;
-  max-width: 380px;
+  max-width: 360px;
   height: 100%;
+  height: 100dvh;
   background: var(--bg-card);
   border-left: 1.5px solid var(--border-subtle);
-  box-shadow: -10px 0 35px rgba(0, 0, 0, 0.25);
+  box-shadow: -14px 0 45px rgba(0, 0, 0, 0.5);
   display: flex;
   flex-direction: column;
-  padding: 1.25rem;
+  padding: 1.25rem 1rem;
   overflow-y: auto;
-  animation: slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-overflow-scrolling: touch;
+  animation: slideInRight 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
+}
+
+.login-card-responsive {
+  padding: 2.25rem 2rem;
+}
+
+@media (max-width: 480px) {
+  .login-card-responsive {
+    padding: 1.5rem 1.15rem !important;
+  }
 }
 
 @keyframes slideInRight {

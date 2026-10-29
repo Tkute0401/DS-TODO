@@ -60,6 +60,7 @@ export function SettingsDrawer({
   const [isOnLeave, setIsOnLeave] = useState(user.is_on_leave);
   const [newPassword, setNewPassword] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
 
   // Admin add user state
   const [newUserName, setNewUserName] = useState('');
@@ -90,12 +91,13 @@ export function SettingsDrawer({
       };
       if (newPassword.trim()) {
         if (newPassword.trim().length < 6) {
-          alert('New password must be at least 6 characters long.');
+          setProfileError('New password must be at least 6 characters long.');
           setIsSaving(false);
           return;
         }
         updates.password = newPassword.trim();
       }
+      setProfileError(null);
       await onUpdateProfile(updates);
       setNewPassword('');
       document.body.setAttribute('data-theme', themeSkin);
@@ -397,6 +399,11 @@ export function SettingsDrawer({
                   {showNewPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
+              {profileError && (
+                <div style={{ color: 'var(--accent-red)', fontSize: '0.78rem', marginTop: '0.35rem', fontWeight: 650 }}>
+                  ⚠️ {profileError}
+                </div>
+              )}
             </div>
 
             {/* Theme Skin Selection - 3-Color Triad Palette Engine */}

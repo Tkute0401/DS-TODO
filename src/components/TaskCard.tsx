@@ -242,7 +242,7 @@ export function TaskCard({
                 )}
               </span>
             ) : (
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', background: 'var(--support-pill)', padding: '0.15rem 0.4rem', borderRadius: '8px', border: '1.5px solid var(--border-active)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', background: 'var(--support-pill)', padding: '0.15rem 0.4rem', borderRadius: '8px', border: '1.5px solid var(--border-active)', width: '100%', maxWidth: '100%', flexWrap: 'wrap' }}>
                 <input
                   type="text"
                   autoFocus
@@ -264,7 +264,8 @@ export function TaskCard({
                     color: 'var(--text-main)',
                     padding: '0 0.2rem',
                     outline: 'none',
-                    minWidth: '180px',
+                    flex: 1,
+                    minWidth: '120px',
                   }}
                 />
                 <button
@@ -454,6 +455,12 @@ export function TaskCard({
             {!isSelfTask && (
               <span className="pill-badge">
                 By: {task.creator_name}
+              </span>
+            )}
+
+            {task.assignee_id !== currentUser.id && task.assignee_name && (
+              <span className="pill-badge" style={{ color: 'var(--accent-theme)', fontWeight: 650, background: 'rgba(56, 189, 248, 0.12)', border: '1px solid rgba(56, 189, 248, 0.25)' }}>
+                👤 {task.assignee_name}
               </span>
             )}
 
