@@ -214,7 +214,7 @@ export function SettingsDrawer({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
             <img
-              src="/ds-icon.png"
+              src="/ds-emblem.png"
               alt="DS"
               style={{ height: '22px', width: 'auto', objectFit: 'contain' }}
             />

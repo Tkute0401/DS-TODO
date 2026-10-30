@@ -1,11 +1,17 @@
 // Digital Supremacy Performance OS PWA Service Worker
-const CACHE_NAME = 'ds-performance-v1';
+const CACHE_NAME = 'ds-performance-v2';
 const PRECACHE_ASSETS = [
   '/',
   '/manifest.json',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png',
+  '/icons/maskable-icon-192x192.png',
+  '/icons/maskable-icon-512x512.png',
+  '/apple-touch-icon.png',
   '/ds-icon.png',
   '/ds-logo.png',
   '/ds-logo-mobile.png',
+  '/ds-emblem.png',
   '/favicon.ico',
 ];
 

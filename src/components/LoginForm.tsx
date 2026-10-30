@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { User } from '@/types';
-import { Mail, Lock, Eye, EyeOff, LogIn, ArrowRight, Shield, AlertCircle, Sparkles } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, LogIn, ArrowRight, Shield, AlertCircle } from 'lucide-react';
 import { DynoMascot } from './DynoMascot';
 import { playSound } from '@/lib/sound';
 
@@ -48,12 +48,6 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleQuickDemo = (demoEmail: string, demoPass: string) => {
-    setEmail(demoEmail);
-    setPassword(demoPass);
-    setErrorMessage(null);
   };
 
   return (
@@ -244,9 +238,6 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
               >
                 Password
               </label>
-              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                Default: <code style={{ color: 'var(--accent-theme)' }}>password123</code>
-              </span>
             </div>
             <div
               style={{
@@ -315,7 +306,7 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
               alignItems: 'center',
               justifyContent: 'center',
               gap: '0.5rem',
-              marginTop: '0.4rem',
+              marginTop: '0.75rem',
               boxShadow: '0 4px 14px rgba(6, 182, 212, 0.25)',
               cursor: isLoading ? 'wait' : 'pointer',
               opacity: isLoading ? 0.75 : 1,
@@ -332,55 +323,6 @@ export function LoginForm({ onLoginSuccess }: LoginFormProps) {
             )}
           </button>
         </form>
-
-        {/* Quick Demo Pre-fill Pills */}
-        <div style={{ marginTop: '1.75rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '1.25rem' }}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              fontSize: '0.72rem',
-              fontWeight: 700,
-              color: 'var(--text-dim)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              marginBottom: '0.65rem',
-            }}
-          >
-            <Sparkles size={12} color="var(--accent-gold)" />
-            <span>Quick Fill (Demo &amp; Testing)</span>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
-            <button
-              type="button"
-              onClick={() => handleQuickDemo('tanmay@digitalsupremacy.in', 'password123')}
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '0.5rem 0.85rem',
-                borderRadius: '10px',
-                background: 'var(--support-pill)',
-                border: '1px solid var(--border-subtle)',
-                fontSize: '0.78rem',
-                color: 'var(--text-main)',
-                cursor: 'pointer',
-                textAlign: 'left',
-              }}
-            >
-              <div>
-                <strong>Tanmay Kute</strong>
-                <span style={{ color: 'var(--accent-theme)', marginLeft: '0.4rem', fontSize: '0.72rem' }}>
-                  (Admin · Digital Supremacy)
-                </span>
-              </div>
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)' }}>tanmay@digitalsupremacy.in</span>
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );
