@@ -96,9 +96,21 @@ export async function PATCH(req: Request) {
       allowedUpdates.password_hash = trimmed;
     }
 
-    // Admin-specific actions: role modification and archiving/unarchiving
+    // Admin-specific actions: role modification, email change, and archiving/unarchiving
     if (user.role === 'ADMIN') {
       if (updates.role !== undefined) allowedUpdates.role = updates.role;
+      if (updates.email !== undefined && typeof updates.email === 'string') {
+        const cleanedEmail = updates.email.trim().toLowerCase();
+        if (!cleanedEmail) {
+          return NextResponse.json({ error: 'Email cannot be empty' }, { status: 400 });
+        }
+        // Verify email uniqueness against other users
+        const existing = await db.getUserByEmail(cleanedEmail, true);
+        if (existing && existing.id !== targetUserId) {
+          return NextResponse.json({ error: 'Email is already used by another employee' }, { status: 400 });
+        }
+        allowedUpdates.email = cleanedEmail;
+      }
       if (updates.is_active !== undefined) {
         if (targetUserId === user.id && updates.is_active === false) {
           return NextResponse.json({ error: 'You cannot archive your own admin account' }, { status: 400 });

@@ -16,7 +16,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Flame,
-  ListTodo
+  ListTodo,
+  Edit3
 } from 'lucide-react';
 
 interface EmployeeHistoryModalProps {
@@ -28,6 +29,7 @@ interface EmployeeHistoryModalProps {
   onOpenReviewModal?: (task: Task) => void;
   onUpdateDueDate?: (taskId: string, newDueDate: string) => Promise<void>;
   onReassignTask?: (taskId: string, newAssigneeId: string) => Promise<void>;
+  onEditUser?: (user: User) => void;
 }
 
 type TabType = 'ALL' | 'ONGOING' | 'BLOCKED' | 'REVIEW' | 'DONE';
@@ -41,6 +43,7 @@ export function EmployeeHistoryModal({
   onOpenReviewModal,
   onUpdateDueDate,
   onReassignTask,
+  onEditUser,
 }: EmployeeHistoryModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -233,25 +236,52 @@ export function EmployeeHistoryModal({
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            title="Close Deliverable History"
-            style={{
-              width: '34px',
-              height: '34px',
-              borderRadius: '10px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--text-muted)',
-              border: '1px solid var(--border-subtle)',
-              background: 'var(--support-pill)',
-              cursor: 'pointer',
-            }}
-          >
-            <X size={17} />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+            {currentUser.role === 'ADMIN' && onEditUser && (
+              <button
+                type="button"
+                onClick={() => onEditUser(member)}
+                title="Edit Employee Information"
+                style={{
+                  padding: '0.4rem 0.75rem',
+                  borderRadius: '10px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  color: 'var(--accent-theme)',
+                  border: '1px solid var(--border-subtle)',
+                  background: 'rgba(0, 240, 255, 0.12)',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <Edit3 size={13} />
+                <span>Edit Info</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={onClose}
+              title="Close Deliverable History"
+              style={{
+                width: '34px',
+                height: '34px',
+                borderRadius: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--text-muted)',
+                border: '1px solid var(--border-subtle)',
+                background: 'var(--support-pill)',
+                cursor: 'pointer',
+              }}
+            >
+              <X size={17} />
+            </button>
+          </div>
         </div>
 
         {/* Scrollable Body Container */}

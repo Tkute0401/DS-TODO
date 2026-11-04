@@ -383,6 +383,7 @@ class NeonDB {
     await this.sql`
       UPDATE users SET 
         name = ${merged.name},
+        email = ${merged.email.trim().toLowerCase()},
         role = ${merged.role},
         designation = ${merged.designation},
         phone = ${merged.phone || null},

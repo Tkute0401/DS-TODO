@@ -16,7 +16,8 @@ import {
   Trash2,
   AlertTriangle,
   X,
-  ListTodo
+  ListTodo,
+  Edit3
 } from 'lucide-react';
 import { EmployeeHistoryModal } from './EmployeeHistoryModal';
 
@@ -29,6 +30,7 @@ interface TeamBoardProps {
   onOpenBlockerModal: (task: Task) => void;
   onArchiveUser?: (userId: string, is_active: boolean) => Promise<void>;
   onDeleteUser?: (userId: string) => Promise<void>;
+  onEditUser?: (user: User) => void;
   onUpdateDueDate?: (taskId: string, newDueDate: string) => Promise<void>;
   onReassignTask?: (taskId: string, newAssigneeId: string) => Promise<void>;
   onResolveBlocker?: (blockerId: string) => Promise<void>;
@@ -43,6 +45,7 @@ export function TeamBoard({
   onOpenBlockerModal,
   onArchiveUser,
   onDeleteUser,
+  onEditUser,
   onUpdateDueDate,
   onReassignTask,
   onResolveBlocker,
@@ -399,54 +402,80 @@ export function TeamBoard({
                       </a>
                     )}
 
-                    {/* Admin Employee Archive & Delete Controls */}
-                    {currentUser.role === 'ADMIN' && member.id !== currentUser.id && (
+                    {/* Admin Employee Edit, Archive & Delete Controls */}
+                    {currentUser.role === 'ADMIN' && (
                       <>
-                        {onArchiveUser && (
+                        {onEditUser && (
                           <button
                             type="button"
-                            onClick={() => {
-                              if (window.confirm(`Archive "${member.name}"? They will be deactivated from active task rosters.`)) {
-                                onArchiveUser(member.id, false);
-                              }
-                            }}
-                            title="Archive Employee"
+                            onClick={() => onEditUser(member)}
+                            title="Edit Employee Information"
                             style={{
                               width: '34px',
                               height: '34px',
                               borderRadius: '8px',
-                              background: 'rgba(245, 158, 11, 0.15)',
-                              color: 'var(--accent-amber)',
+                              background: 'rgba(0, 240, 255, 0.15)',
+                              color: 'var(--accent-theme)',
                               border: 'none',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               cursor: 'pointer',
+                              transition: 'transform 0.15s ease',
                             }}
                           >
-                            <Archive size={15} />
+                            <Edit3 size={15} />
                           </button>
                         )}
-                        {onDeleteUser && (
-                          <button
-                            type="button"
-                            onClick={() => setMemberToDelete(member)}
-                            title="Permanently Delete Employee"
-                            style={{
-                              width: '34px',
-                              height: '34px',
-                              borderRadius: '8px',
-                              background: 'rgba(255, 71, 87, 0.15)',
-                              color: 'var(--accent-red)',
-                              border: 'none',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              cursor: 'pointer',
-                            }}
-                          >
-                            <Trash2 size={15} />
-                          </button>
+                        {member.id !== currentUser.id && (
+                          <>
+                            {onArchiveUser && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (window.confirm(`Archive "${member.name}"? They will be deactivated from active task rosters.`)) {
+                                    onArchiveUser(member.id, false);
+                                  }
+                                }}
+                                title="Archive Employee"
+                                style={{
+                                  width: '34px',
+                                  height: '34px',
+                                  borderRadius: '8px',
+                                  background: 'rgba(245, 158, 11, 0.15)',
+                                  color: 'var(--accent-amber)',
+                                  border: 'none',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                <Archive size={15} />
+                              </button>
+                            )}
+                            {onDeleteUser && (
+                              <button
+                                type="button"
+                                onClick={() => setMemberToDelete(member)}
+                                title="Permanently Delete Employee"
+                                style={{
+                                  width: '34px',
+                                  height: '34px',
+                                  borderRadius: '8px',
+                                  background: 'rgba(255, 71, 87, 0.15)',
+                                  color: 'var(--accent-red)',
+                                  border: 'none',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            )}
+                          </>
                         )}
                       </>
                     )}
@@ -940,6 +969,9 @@ export function TeamBoard({
           }}
           onUpdateDueDate={onUpdateDueDate}
           onReassignTask={onReassignTask}
+          onEditUser={(userToEdit) => {
+            if (onEditUser) onEditUser(userToEdit);
+          }}
         />
       )}
     </div>

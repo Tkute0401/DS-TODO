@@ -16,6 +16,7 @@ import { KudosCelebrationModal } from '@/components/KudosCelebrationModal';
 import { LoginForm } from '@/components/LoginForm';
 import { SubmitReviewModal } from '@/components/SubmitReviewModal';
 import { ClientDeliverablesBoard } from '@/components/ClientDeliverablesBoard';
+import { EditEmployeeModal } from '@/components/EditEmployeeModal';
 import { AlertCircle, CheckCircle2, Zap, AlertTriangle, ListTodo, ShieldAlert, ChevronDown, ChevronUp, Archive, Search, X } from 'lucide-react';
 import { playSound } from '@/lib/sound';
 
@@ -34,6 +35,7 @@ export default function App() {
   const [activeBlockerModalTask, setActiveBlockerModalTask] = useState<Task | null>(null);
   const [activeReviewModalTask, setActiveReviewModalTask] = useState<Task | null>(null);
   const [activeSubmitReviewTask, setActiveSubmitReviewTask] = useState<Task | null>(null);
+  const [editingEmployee, setEditingEmployee] = useState<User | null>(null);
   const [preselectedAssigneeId, setPreselectedAssigneeId] = useState<string | undefined>();
   const [showSettings, setShowSettings] = useState(false);
   const [showVictoryModal, setShowVictoryModal] = useState(false);
@@ -472,6 +474,26 @@ export default function App() {
       }
     } catch {
       showErrorToast('Network error updating employee');
+    }
+  };
+
+  const handleSaveEmployeeInfo = async (userId: string, updates: Partial<User & { password?: string }>) => {
+    const res = await fetch('/api/users', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, ...updates }),
+    });
+    if (res.ok) {
+      playSound.pop(currentUser?.sound_enabled);
+      await fetchData();
+      if (currentUser?.id === userId) {
+        const data = await res.json();
+        if (data.user) setCurrentUser(data.user);
+      }
+      setEditingEmployee(null);
+    } else {
+      const err = await res.json();
+      throw new Error(err.error || 'Failed to update employee info');
     }
   };
 
@@ -1131,6 +1153,7 @@ export default function App() {
               onOpenBlockerModal={setActiveBlockerModalTask}
               onArchiveUser={handleArchiveUser}
               onDeleteUser={handleDeleteUser}
+              onEditUser={(u) => setEditingEmployee(u)}
               onUpdateDueDate={handleUpdateDueDate}
               onReassignTask={handleReassignTask}
               onResolveBlocker={handleResolveBlocker}
@@ -1189,6 +1212,17 @@ export default function App() {
           onAddUser={handleAddUser}
           onArchiveUser={handleArchiveUser}
           onDeleteUser={handleDeleteUser}
+          onEditUser={(u) => setEditingEmployee(u)}
+        />
+      )}
+
+      {editingEmployee && currentUser.role === 'ADMIN' && (
+        <EditEmployeeModal
+          employee={editingEmployee}
+          currentAdmin={currentUser}
+          onClose={() => setEditingEmployee(null)}
+          onSave={handleSaveEmployeeInfo}
+          soundEnabled={currentUser.sound_enabled ?? true}
         />
       )}
 

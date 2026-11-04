@@ -20,7 +20,8 @@ import {
   CheckCircle2,
   Lock,
   Eye,
-  EyeOff
+  EyeOff,
+  Edit3
 } from 'lucide-react';
 
 interface SettingsDrawerProps {
@@ -38,6 +39,7 @@ interface SettingsDrawerProps {
   }) => Promise<void>;
   onArchiveUser?: (userId: string, is_active: boolean) => Promise<void>;
   onDeleteUser?: (userId: string) => Promise<void>;
+  onEditUser?: (user: User) => void;
 }
 
 export function SettingsDrawer({
@@ -48,6 +50,7 @@ export function SettingsDrawer({
   onAddUser,
   onArchiveUser,
   onDeleteUser,
+  onEditUser,
 }: SettingsDrawerProps) {
   const [activeTab, setActiveTab] = useState<'profile' | 'workforce' | 'provision'>('profile');
   
@@ -649,6 +652,30 @@ export function SettingsDrawer({
 
                     {/* Right: Actions */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexShrink: 0 }}>
+                      {/* Edit Employee Info */}
+                      {onEditUser && (
+                        <button
+                          type="button"
+                          onClick={() => onEditUser(member)}
+                          title="Edit Employee Information"
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '10px',
+                            background: 'rgba(0, 240, 255, 0.15)',
+                            color: 'var(--accent-theme)',
+                            border: 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            transition: 'transform 0.15s ease',
+                          }}
+                        >
+                          <Edit3 size={14} />
+                        </button>
+                      )}
+
                       {isSelf ? (
                         <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)', fontStyle: 'italic', paddingRight: '0.3rem' }}>
                           (You)
