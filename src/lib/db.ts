@@ -1,5 +1,5 @@
 import { neon } from '@neondatabase/serverless';
-import { User, Task, Blocker, NotificationItem, KudosItem } from '@/types';
+import { User, Task, Blocker, NotificationItem, KudosItem, ClientDeliverable } from '@/types';
 
 // Initial seed administrator (Tanmay Kute)
 const SEED_USERS: (User & { password_hash: string })[] = [
@@ -32,6 +32,7 @@ class InMemoryDB {
   blockers: Blocker[] = [];
   notifications: NotificationItem[] = [];
   kudos: KudosItem[] = [];
+  clientDeliverables: ClientDeliverable[] = [];
 
   async getUserByEmail(email: string, includeInactive = false) {
     return this.users.find((u) => u.email.toLowerCase() === email.toLowerCase() && (includeInactive || u.is_active));
@@ -86,14 +87,17 @@ class InMemoryDB {
   enrichTask(task: Task): Task {
     const creator = this.users.find((u) => u.id === task.creator_id);
     const assignee = this.users.find((u) => u.id === task.assignee_id);
+    const reviewer = task.reviewer_id ? this.users.find((u) => u.id === task.reviewer_id) : undefined;
     const activeBlocker = this.blockers.find(
       (b) => b.task_id === task.id && b.status === 'ACTIVE'
     );
     return {
       ...task,
       creator_name: creator?.name || 'Unknown',
+      creator_role: creator?.role,
       assignee_name: assignee?.name || 'Unknown',
       assignee_designation: assignee?.designation || '',
+      reviewer_name: reviewer?.name,
       active_blocker: activeBlocker ? this.enrichBlocker(activeBlocker) : undefined,
     };
   }
@@ -181,6 +185,33 @@ class InMemoryDB {
     this.kudos.unshift(kudos);
     return kudos;
   }
+
+  async getClientDeliverables(month?: string): Promise<ClientDeliverable[]> {
+    if (month) {
+      return this.clientDeliverables.filter((c) => c.month === month);
+    }
+    return this.clientDeliverables;
+  }
+
+  async upsertClientDeliverable(data: ClientDeliverable): Promise<ClientDeliverable> {
+    const idx = this.clientDeliverables.findIndex((c) => c.id === data.id);
+    if (idx !== -1) {
+      this.clientDeliverables[idx] = { ...this.clientDeliverables[idx], ...data, updated_at: new Date().toISOString() };
+      return this.clientDeliverables[idx];
+    }
+    const item = { ...data, created_at: data.created_at || new Date().toISOString(), updated_at: new Date().toISOString() };
+    this.clientDeliverables.push(item);
+    return item;
+  }
+
+  async deleteClientDeliverable(id: string): Promise<boolean> {
+    const idx = this.clientDeliverables.findIndex((c) => c.id === id);
+    if (idx !== -1) {
+      this.clientDeliverables.splice(idx, 1);
+      return true;
+    }
+    return false;
+  }
 }
 
 // Neon Postgres Database Adapter Class
@@ -237,6 +268,22 @@ class NeonDB {
 
       await this.sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS deadline_extended BOOLEAN DEFAULT false;`;
       await this.sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS kudos_badge TEXT;`;
+      await this.sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS reviewer_id TEXT;`;
+
+      await this.sql`
+        CREATE TABLE IF NOT EXISTS client_deliverables (
+          id TEXT PRIMARY KEY,
+          client_name TEXT NOT NULL,
+          month TEXT NOT NULL,
+          target_reels INTEGER NOT NULL DEFAULT 0,
+          completed_reels INTEGER NOT NULL DEFAULT 0,
+          target_graphics INTEGER NOT NULL DEFAULT 0,
+          completed_graphics INTEGER NOT NULL DEFAULT 0,
+          notes TEXT,
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          updated_at TIMESTAMPTZ DEFAULT NOW()
+        );
+      `;
 
       await this.sql`
         CREATE TABLE IF NOT EXISTS blockers (
@@ -363,10 +410,16 @@ class NeonDB {
   async getTasksForUser(userId: string) {
     await this.ensureSchema();
     const tasks = (await this.sql`
-      SELECT t.*, u_creator.name as creator_name, u_assignee.name as assignee_name, u_assignee.designation as assignee_designation
+      SELECT t.*, 
+        u_creator.name as creator_name, 
+        u_creator.role as creator_role, 
+        u_assignee.name as assignee_name, 
+        u_assignee.designation as assignee_designation,
+        u_reviewer.name as reviewer_name
       FROM tasks t
       LEFT JOIN users u_creator ON t.creator_id = u_creator.id
       LEFT JOIN users u_assignee ON t.assignee_id = u_assignee.id
+      LEFT JOIN users u_reviewer ON t.reviewer_id = u_reviewer.id
       WHERE t.assignee_id = ${userId}
       ORDER BY t.created_at DESC;
     `) as unknown as Task[];
@@ -376,10 +429,16 @@ class NeonDB {
   async getAllTasks() {
     await this.ensureSchema();
     const tasks = (await this.sql`
-      SELECT t.*, u_creator.name as creator_name, u_assignee.name as assignee_name, u_assignee.designation as assignee_designation
+      SELECT t.*, 
+        u_creator.name as creator_name, 
+        u_creator.role as creator_role, 
+        u_assignee.name as assignee_name, 
+        u_assignee.designation as assignee_designation,
+        u_reviewer.name as reviewer_name
       FROM tasks t
       LEFT JOIN users u_creator ON t.creator_id = u_creator.id
       LEFT JOIN users u_assignee ON t.assignee_id = u_assignee.id
+      LEFT JOIN users u_reviewer ON t.reviewer_id = u_reviewer.id
       ORDER BY t.created_at DESC;
     `) as unknown as Task[];
     return this.attachBlockers(tasks);
@@ -405,10 +464,16 @@ class NeonDB {
   async getTaskById(id: string) {
     await this.ensureSchema();
     const rows = (await this.sql`
-      SELECT t.*, u_creator.name as creator_name, u_assignee.name as assignee_name, u_assignee.designation as assignee_designation
+      SELECT t.*, 
+        u_creator.name as creator_name, 
+        u_creator.role as creator_role, 
+        u_assignee.name as assignee_name, 
+        u_assignee.designation as assignee_designation,
+        u_reviewer.name as reviewer_name
       FROM tasks t
       LEFT JOIN users u_creator ON t.creator_id = u_creator.id
       LEFT JOIN users u_assignee ON t.assignee_id = u_assignee.id
+      LEFT JOIN users u_reviewer ON t.reviewer_id = u_reviewer.id
       WHERE t.id = ${id}
       LIMIT 1;
     `) as unknown as Task[];
@@ -420,8 +485,8 @@ class NeonDB {
   async createTask(task: Task) {
     await this.ensureSchema();
     await this.sql`
-      INSERT INTO tasks (id, title, creator_id, assignee_id, status, is_urgent, due_date, deadline_extended, deliverable_link, kudos_badge)
-      VALUES (${task.id}, ${task.title}, ${task.creator_id}, ${task.assignee_id}, ${task.status}, ${task.is_urgent}, ${task.due_date}, ${Boolean(task.deadline_extended)}, ${task.deliverable_link || null}, ${task.kudos_badge || null});
+      INSERT INTO tasks (id, title, creator_id, assignee_id, reviewer_id, status, is_urgent, due_date, deadline_extended, deliverable_link, kudos_badge)
+      VALUES (${task.id}, ${task.title}, ${task.creator_id}, ${task.assignee_id}, ${task.reviewer_id || null}, ${task.status}, ${task.is_urgent}, ${task.due_date}, ${Boolean(task.deadline_extended)}, ${task.deliverable_link || null}, ${task.kudos_badge || null});
     `;
     return this.getTaskById(task.id) as Promise<Task>;
   }
@@ -435,6 +500,7 @@ class NeonDB {
       UPDATE tasks SET
         title = ${merged.title},
         assignee_id = ${merged.assignee_id},
+        reviewer_id = ${merged.reviewer_id || null},
         status = ${merged.status},
         is_urgent = ${merged.is_urgent},
         due_date = ${merged.due_date || null},
@@ -531,6 +597,50 @@ class NeonDB {
       VALUES (${kudos.id}, ${kudos.task_id}, ${kudos.from_user_id}, ${kudos.from_user_name || null}, ${kudos.to_user_id}, ${kudos.badge_type});
     `;
     return kudos;
+  }
+
+  async getClientDeliverables(month?: string): Promise<ClientDeliverable[]> {
+    await this.ensureSchema();
+    if (month) {
+      return (await this.sql`
+        SELECT * FROM client_deliverables 
+        WHERE month = ${month} 
+        ORDER BY client_name ASC;
+      `) as unknown as ClientDeliverable[];
+    }
+    return (await this.sql`
+      SELECT * FROM client_deliverables 
+      ORDER BY month DESC, client_name ASC;
+    `) as unknown as ClientDeliverable[];
+  }
+
+  async upsertClientDeliverable(data: ClientDeliverable): Promise<ClientDeliverable> {
+    await this.ensureSchema();
+    await this.sql`
+      INSERT INTO client_deliverables (
+        id, client_name, month, target_reels, completed_reels, target_graphics, completed_graphics, notes, updated_at
+      ) VALUES (
+        ${data.id}, ${data.client_name}, ${data.month}, ${data.target_reels || 0}, ${data.completed_reels || 0}, 
+        ${data.target_graphics || 0}, ${data.completed_graphics || 0}, ${data.notes || null}, NOW()
+      )
+      ON CONFLICT (id) DO UPDATE SET
+        client_name = EXCLUDED.client_name,
+        month = EXCLUDED.month,
+        target_reels = EXCLUDED.target_reels,
+        completed_reels = EXCLUDED.completed_reels,
+        target_graphics = EXCLUDED.target_graphics,
+        completed_graphics = EXCLUDED.completed_graphics,
+        notes = EXCLUDED.notes,
+        updated_at = NOW();
+    `;
+    const rows = (await this.sql`SELECT * FROM client_deliverables WHERE id = ${data.id} LIMIT 1;`) as unknown as ClientDeliverable[];
+    return rows[0];
+  }
+
+  async deleteClientDeliverable(id: string): Promise<boolean> {
+    await this.ensureSchema();
+    await this.sql`DELETE FROM client_deliverables WHERE id = ${id};`;
+    return true;
   }
 }
 

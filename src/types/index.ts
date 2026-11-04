@@ -37,9 +37,12 @@ export interface Task {
   title: string;
   creator_id: string;
   creator_name?: string;
+  creator_role?: UserRole;
   assignee_id: string;
   assignee_name?: string;
   assignee_designation?: string;
+  reviewer_id?: string;
+  reviewer_name?: string;
   status: TaskStatus;
   is_urgent: boolean;
   due_date: string; // YYYY-MM-DD
@@ -89,4 +92,17 @@ export interface KudosItem {
   to_user_id: string;
   badge_type: KudosType;
   created_at: string;
+}
+
+export interface ClientDeliverable {
+  id: string;
+  client_name: string;
+  month: string; // Format: YYYY-MM (e.g., '2026-11')
+  target_reels: number;
+  completed_reels: number;
+  target_graphics: number;
+  completed_graphics: number;
+  notes?: string;
+  created_at: string;
+  updated_at?: string;
 }

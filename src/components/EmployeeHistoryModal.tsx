@@ -51,6 +51,18 @@ export function EmployeeHistoryModal({
 
   const PAGE_SIZE = 5;
 
+  const canReviewTask = (t: Task) => {
+    if (currentUser.role === 'ADMIN') return true;
+    if (currentUser.role === 'MANAGER') {
+      const creator = allUsers.find((u) => u.id === t.creator_id);
+      const isCreatorManager = t.creator_role === 'MANAGER' || creator?.role === 'MANAGER';
+      if (isCreatorManager && t.creator_id !== currentUser.id) return false;
+      if (t.reviewer_id && t.reviewer_id !== currentUser.id) return false;
+      return true;
+    }
+    return false;
+  };
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -601,7 +613,7 @@ export function EmployeeHistoryModal({
                         )}
 
                         {/* Review / Revise Sign-Off Button */}
-                        {onOpenReviewModal && (currentUser.role === 'MANAGER' || currentUser.role === 'ADMIN') && (
+                        {onOpenReviewModal && (currentUser.role === 'ADMIN' || (currentUser.role === 'MANAGER' && canReviewTask(t))) && (
                           <button
                             type="button"
                             onClick={() => onOpenReviewModal(t)}

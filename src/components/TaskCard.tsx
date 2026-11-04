@@ -27,6 +27,7 @@ interface TaskCardProps {
   onUpdateStatus: (taskId: string, newStatus: Task['status']) => void;
   onOpenBlockerModal: (task: Task) => void;
   onDeleteTask: (taskId: string) => void;
+  onOpenSubmitReviewModal?: (task: Task) => void;
   onSendNudge?: (targetUserId: string, taskTitle: string, taskId: string) => void;
   onUpdateDeliverableLink?: (taskId: string, link: string) => Promise<void>;
   onUpdateDueDate?: (taskId: string, newDueDate: string) => Promise<void>;
@@ -42,6 +43,7 @@ export function TaskCard({
   onUpdateStatus,
   onOpenBlockerModal,
   onDeleteTask,
+  onOpenSubmitReviewModal,
   onSendNudge,
   onUpdateDeliverableLink,
   onUpdateDueDate,
@@ -134,6 +136,10 @@ export function TaskCard({
 
     // Employee tasks (including self-made) require manager/admin sign-off
     const needsReview = currentUser.role === 'EMPLOYEE' || !isSelfTask;
+    if (needsReview && onOpenSubmitReviewModal) {
+      onOpenSubmitReviewModal(task);
+      return;
+    }
     onUpdateStatus(task.id, needsReview ? 'NEEDS_REVIEW' : 'DONE');
   };
 
@@ -523,6 +529,13 @@ export function TaskCard({
               </span>
             )}
 
+            {/* Assigned Reviewer Display */}
+            {isReview && task.reviewer_name && (
+              <span style={{ color: 'var(--accent-theme)', fontSize: '0.74rem', fontWeight: 650, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                👤 Assigned Reviewer: <strong>{task.reviewer_name}</strong>
+              </span>
+            )}
+
             {/* Revision Requested Note */}
             {task.revision_note && task.status === 'IN_PROGRESS' && (
               <span
@@ -677,7 +690,13 @@ export function TaskCard({
 
             {(currentUser.role === 'EMPLOYEE' || !isSelfTask) ? (
               <button
-                onClick={() => onUpdateStatus(task.id, 'NEEDS_REVIEW')}
+                onClick={() => {
+                  if (onOpenSubmitReviewModal) {
+                    onOpenSubmitReviewModal(task);
+                  } else {
+                    onUpdateStatus(task.id, 'NEEDS_REVIEW');
+                  }
+                }}
                 style={{
                   padding: '0.3rem 0.9rem',
                   minHeight: '32px',

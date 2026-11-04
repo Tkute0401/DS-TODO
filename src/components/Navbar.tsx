@@ -19,14 +19,15 @@ import {
   Palette,
   Download,
   Menu,
-  X
+  X,
+  Briefcase
 } from 'lucide-react';
 
 interface NavbarProps {
   user: User;
   allUsers: User[];
-  viewMode: 'my' | 'team';
-  onViewModeChange: (mode: 'my' | 'team') => void;
+  viewMode: 'my' | 'team' | 'clients';
+  onViewModeChange: (mode: 'my' | 'team' | 'clients') => void;
   notifications: NotificationItem[];
   onMarkNotificationRead: (id: string) => void;
   onMarkAllNotificationsRead?: () => void;
@@ -206,6 +207,23 @@ export function Navbar({
             >
               <Users size={14} />
               <span>Team Board</span>
+            </button>
+            <button
+              onClick={() => onViewModeChange('clients')}
+              style={{
+                padding: '0.35rem 0.9rem',
+                minHeight: '34px',
+                borderRadius: '10px',
+                background: viewMode === 'clients' ? 'var(--bg-card)' : 'transparent',
+                color: viewMode === 'clients' ? 'var(--text-main)' : 'var(--text-muted)',
+                fontWeight: viewMode === 'clients' ? 700 : 600,
+                fontSize: '0.82rem',
+                border: viewMode === 'clients' ? '1px solid var(--border-subtle)' : '1px solid transparent',
+                boxShadow: viewMode === 'clients' ? '0 2px 6px var(--clay-drop-shadow-soft), inset 1px 1px 2px var(--clay-highlight)' : 'none',
+              }}
+            >
+              <Briefcase size={14} />
+              <span>Client Deliverables</span>
             </button>
           </div>
         )}
@@ -476,35 +494,37 @@ export function Navbar({
                   <div style={{ fontSize: '0.73rem', color: 'var(--text-dim)', marginTop: '1px' }}>{user.email}</div>
                 </div>
 
-                {/* Instant Role Testing Switcher */}
-                <div style={{ marginBottom: '0.5rem' }}>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '0.35rem', fontWeight: 700, letterSpacing: '0.04em' }}>
-                    Switch Demo User
+                {/* Instant Role Testing Switcher (Admin Only) */}
+                {user.role === 'ADMIN' && (
+                  <div style={{ marginBottom: '0.5rem' }}>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '0.35rem', fontWeight: 700, letterSpacing: '0.04em' }}>
+                      Switch Demo User
+                    </div>
+                    {allUsers.filter((u) => u.is_active !== false).map((u) => (
+                      <button
+                        key={u.id}
+                        onClick={() => {
+                          onSwitchUser(u);
+                          setShowUserMenu(false);
+                        }}
+                        style={{
+                          width: '100%',
+                          justifyContent: 'flex-start',
+                          padding: '0.45rem 0.65rem',
+                          minHeight: '34px',
+                          borderRadius: '10px',
+                          background: u.id === user.id ? 'var(--support-pill)' : 'transparent',
+                          border: u.id === user.id ? '1px solid var(--border-subtle)' : '1px solid transparent',
+                          fontSize: '0.82rem',
+                          color: u.id === user.id ? 'var(--accent-theme)' : 'var(--text-muted)'
+                        }}
+                      >
+                        <span style={{ fontWeight: 650 }}>{u.name}</span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)', marginLeft: 'auto' }}>({u.role})</span>
+                      </button>
+                    ))}
                   </div>
-                  {allUsers.filter((u) => u.is_active !== false).map((u) => (
-                    <button
-                      key={u.id}
-                      onClick={() => {
-                        onSwitchUser(u);
-                        setShowUserMenu(false);
-                      }}
-                      style={{
-                        width: '100%',
-                        justifyContent: 'flex-start',
-                        padding: '0.45rem 0.65rem',
-                        minHeight: '34px',
-                        borderRadius: '10px',
-                        background: u.id === user.id ? 'var(--support-pill)' : 'transparent',
-                        border: u.id === user.id ? '1px solid var(--border-subtle)' : '1px solid transparent',
-                        fontSize: '0.82rem',
-                        color: u.id === user.id ? 'var(--accent-theme)' : 'var(--text-muted)'
-                      }}
-                    >
-                      <span style={{ fontWeight: 650 }}>{u.name}</span>
-                      <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)', marginLeft: 'auto' }}>({u.role})</span>
-                    </button>
-                  ))}
-                </div>
+                )}
 
                 <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                   {onInstallPWA && (
@@ -632,7 +652,7 @@ export function Navbar({
                 <div style={{ fontSize: '0.68rem', fontWeight: 750, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.45rem' }}>
                   Workspace Board
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.45rem', background: 'var(--support-pill)', padding: '3px', borderRadius: '14px', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.35rem', background: 'var(--support-pill)', padding: '3px', borderRadius: '14px', border: '1px solid var(--border-subtle)' }}>
                   <button
                     type="button"
                     onClick={() => {
@@ -640,18 +660,22 @@ export function Navbar({
                       setShowMobileDrawer(false);
                     }}
                     style={{
-                      padding: '0.55rem',
+                      padding: '0.5rem 0.3rem',
                       minHeight: '40px',
                       borderRadius: '10px',
                       background: viewMode === 'my' ? 'var(--bg-card)' : 'transparent',
                       color: viewMode === 'my' ? 'var(--text-main)' : 'var(--text-muted)',
                       fontWeight: viewMode === 'my' ? 750 : 600,
-                      fontSize: '0.82rem',
+                      fontSize: '0.76rem',
                       border: viewMode === 'my' ? '1px solid var(--border-subtle)' : '1px solid transparent',
                       boxShadow: viewMode === 'my' ? '0 2px 6px var(--clay-drop-shadow-soft)' : 'none',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '0.2rem',
                     }}
                   >
-                    <ListTodo size={15} />
+                    <ListTodo size={14} />
                     <span>My Tasks</span>
                   </button>
                   <button
@@ -661,19 +685,48 @@ export function Navbar({
                       setShowMobileDrawer(false);
                     }}
                     style={{
-                      padding: '0.55rem',
+                      padding: '0.5rem 0.3rem',
                       minHeight: '40px',
                       borderRadius: '10px',
                       background: viewMode === 'team' ? 'var(--bg-card)' : 'transparent',
                       color: viewMode === 'team' ? 'var(--text-main)' : 'var(--text-muted)',
                       fontWeight: viewMode === 'team' ? 750 : 600,
-                      fontSize: '0.82rem',
+                      fontSize: '0.76rem',
                       border: viewMode === 'team' ? '1px solid var(--border-subtle)' : '1px solid transparent',
                       boxShadow: viewMode === 'team' ? '0 2px 6px var(--clay-drop-shadow-soft)' : 'none',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '0.2rem',
                     }}
                   >
-                    <Users size={15} />
+                    <Users size={14} />
                     <span>Team Board</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onViewModeChange('clients');
+                      setShowMobileDrawer(false);
+                    }}
+                    style={{
+                      padding: '0.5rem 0.3rem',
+                      minHeight: '40px',
+                      borderRadius: '10px',
+                      background: viewMode === 'clients' ? 'var(--bg-card)' : 'transparent',
+                      color: viewMode === 'clients' ? 'var(--text-main)' : 'var(--text-muted)',
+                      fontWeight: viewMode === 'clients' ? 750 : 600,
+                      fontSize: '0.76rem',
+                      border: viewMode === 'clients' ? '1px solid var(--border-subtle)' : '1px solid transparent',
+                      boxShadow: viewMode === 'clients' ? '0 2px 6px var(--clay-drop-shadow-soft)' : 'none',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '0.2rem',
+                    }}
+                  >
+                    <Briefcase size={14} />
+                    <span>Clients</span>
                   </button>
                 </div>
               </div>
@@ -770,38 +823,40 @@ export function Navbar({
               </button>
             </div>
 
-            {/* 4. Demo User Switcher */}
-            <div style={{ marginBottom: '1.25rem' }}>
-              <div style={{ fontSize: '0.68rem', fontWeight: 750, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.45rem' }}>
-                Switch Demo User
+            {/* 4. Demo User Switcher (Admin Only) */}
+            {user.role === 'ADMIN' && (
+              <div style={{ marginBottom: '1.25rem' }}>
+                <div style={{ fontSize: '0.68rem', fontWeight: 750, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.45rem' }}>
+                  Switch Demo User
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                  {allUsers.filter((u) => u.is_active !== false).map((u) => (
+                    <button
+                      key={u.id}
+                      type="button"
+                      onClick={() => {
+                        onSwitchUser(u);
+                        setShowMobileDrawer(false);
+                      }}
+                      style={{
+                        width: '100%',
+                        justifyContent: 'flex-start',
+                        padding: '0.5rem 0.75rem',
+                        minHeight: '40px',
+                        borderRadius: '11px',
+                        background: u.id === user.id ? 'var(--support-pill)' : 'transparent',
+                        border: u.id === user.id ? '1px solid var(--border-subtle)' : '1px solid transparent',
+                        fontSize: '0.82rem',
+                        color: u.id === user.id ? 'var(--accent-theme)' : 'var(--text-muted)',
+                      }}
+                    >
+                      <span style={{ fontWeight: 650 }}>{u.name}</span>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', marginLeft: 'auto' }}>({u.role})</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                {allUsers.filter((u) => u.is_active !== false).map((u) => (
-                  <button
-                    key={u.id}
-                    type="button"
-                    onClick={() => {
-                      onSwitchUser(u);
-                      setShowMobileDrawer(false);
-                    }}
-                    style={{
-                      width: '100%',
-                      justifyContent: 'flex-start',
-                      padding: '0.5rem 0.75rem',
-                      minHeight: '40px',
-                      borderRadius: '11px',
-                      background: u.id === user.id ? 'var(--support-pill)' : 'transparent',
-                      border: u.id === user.id ? '1px solid var(--border-subtle)' : '1px solid transparent',
-                      fontSize: '0.82rem',
-                      color: u.id === user.id ? 'var(--accent-theme)' : 'var(--text-muted)',
-                    }}
-                  >
-                    <span style={{ fontWeight: 650 }}>{u.name}</span>
-                    <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', marginLeft: 'auto' }}>({u.role})</span>
-                  </button>
-                ))}
-              </div>
-            </div>
+            )}
 
             {/* 5. System Controls */}
             <div style={{ marginTop: 'auto', borderTop: '1px solid var(--border-subtle)', paddingTop: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>

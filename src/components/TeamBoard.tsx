@@ -54,7 +54,27 @@ export function TeamBoard({
   const [editingDueDateTaskId, setEditingDueDateTaskId] = useState<string | null>(null);
   const [extendDateInput, setExtendDateInput] = useState<string>('');
 
-  const reviewTasks = allTasks.filter((t) => t.status === 'NEEDS_REVIEW');
+  // Check if current user is authorized to review/revise this task
+  const canReviewTask = (t: Task) => {
+    if (currentUser.role === 'ADMIN') return true;
+    if (currentUser.role === 'MANAGER') {
+      // If task was created by another manager, only Admin can review
+      const creator = allUsers.find((u) => u.id === t.creator_id);
+      const isCreatorManager = t.creator_role === 'MANAGER' || creator?.role === 'MANAGER';
+      if (isCreatorManager && t.creator_id !== currentUser.id) {
+        return false;
+      }
+      // If a specific reviewer was assigned by employee, only that reviewer or admin can review
+      if (t.reviewer_id && t.reviewer_id !== currentUser.id) {
+        return false;
+      }
+      return true;
+    }
+    return false;
+  };
+
+  // Review queue: tasks pending verification authorized for current user
+  const reviewTasks = allTasks.filter((t) => t.status === 'NEEDS_REVIEW' && canReviewTask(t));
 
   // Active blockers across firm
   const activeBlockers = allTasks.filter((t) => Boolean(t.active_blocker));
@@ -674,19 +694,25 @@ export function TeamBoard({
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingTop: '0.35rem', borderTop: '1px solid var(--border-subtle)' }}>
-                          <button
-                            type="button"
-                            onClick={() => onOpenReviewModal(t)}
-                            className="btn-accent"
-                            style={{
-                              fontSize: '0.72rem',
-                              padding: '0.22rem 0.65rem',
-                              borderRadius: '8px',
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
-                            Review / Revise
-                          </button>
+                          {canReviewTask(t) ? (
+                            <button
+                              type="button"
+                              onClick={() => onOpenReviewModal(t)}
+                              className="btn-accent"
+                              style={{
+                                fontSize: '0.72rem',
+                                padding: '0.22rem 0.65rem',
+                                borderRadius: '8px',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              Review / Revise
+                            </button>
+                          ) : (
+                            <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', fontStyle: 'italic' }}>
+                              Pending Admin Review
+                            </span>
+                          )}
                         </div>
                       </div>
                     );
@@ -726,7 +752,7 @@ export function TeamBoard({
                           </div>
                         </div>
 
-                        {(currentUser.role === 'MANAGER' || currentUser.role === 'ADMIN') && (
+                        {(currentUser.role === 'ADMIN' || (currentUser.role === 'MANAGER' && canReviewTask(t))) && (
                           <button
                             type="button"
                             onClick={() => onOpenReviewModal(t)}

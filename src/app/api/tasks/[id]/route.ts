@@ -25,7 +25,7 @@ export async function PATCH(
 
   try {
     const body = await req.json();
-    const { title, status, deliverable_link, due_date, is_urgent, revision_note, kudos_badge, assignee_id } = body;
+    const { title, status, deliverable_link, due_date, is_urgent, revision_note, kudos_badge, assignee_id, reviewer_id } = body;
 
     const updates: Record<string, unknown> = {};
 
@@ -145,8 +145,26 @@ export async function PATCH(
         updates.status = 'NEEDS_REVIEW';
         updates.review_started_at = new Date().toISOString();
 
-        // If employee created the task themselves, alert all active managers and admins!
-        if (task.creator_id === user.id) {
+        // If employee selected a specific manager for review
+        if (reviewer_id) {
+          updates.reviewer_id = reviewer_id;
+          const assignedReviewer = await db.getUserById(reviewer_id);
+          if (assignedReviewer) {
+            await db.createNotification({
+              id: `n-${Date.now()}`,
+              user_id: assignedReviewer.id,
+              actor_id: user.id,
+              actor_name: user.name,
+              task_id: task.id,
+              type: 'NEEDS_REVIEW',
+              title: 'Deliverable Submitted for Review',
+              body: `${user.name} submitted "${task.title}" to you for verification.`,
+              is_read: false,
+              created_at: new Date().toISOString(),
+            });
+          }
+        } else if (task.creator_id === user.id) {
+          // If employee created the task themselves without selecting a reviewer, alert active managers and admins!
           const allUsers = await db.getAllUsers();
           const reviewers = allUsers.filter(
             (u) => u.is_active !== false && (u.role === 'MANAGER' || u.role === 'ADMIN') && u.id !== user.id

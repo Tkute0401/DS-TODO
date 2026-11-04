@@ -14,6 +14,8 @@ import { DailyVictoryModal } from '@/components/DailyVictoryModal';
 import { DynoMascot } from '@/components/DynoMascot';
 import { KudosCelebrationModal } from '@/components/KudosCelebrationModal';
 import { LoginForm } from '@/components/LoginForm';
+import { SubmitReviewModal } from '@/components/SubmitReviewModal';
+import { ClientDeliverablesBoard } from '@/components/ClientDeliverablesBoard';
 import { AlertCircle, CheckCircle2, Zap, AlertTriangle, ListTodo, ShieldAlert, ChevronDown, ChevronUp, Archive, Search, X } from 'lucide-react';
 import { playSound } from '@/lib/sound';
 
@@ -23,7 +25,7 @@ export default function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [blockersOnMe, setBlockersOnMe] = useState<Blocker[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const [viewMode, setViewMode] = useState<'my' | 'team'>('my');
+  const [viewMode, setViewMode] = useState<'my' | 'team' | 'clients'>('my');
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'BLOCKED' | 'REVIEW' | 'DONE'>('ALL');
@@ -31,6 +33,7 @@ export default function App() {
   // Modals & Drawers
   const [activeBlockerModalTask, setActiveBlockerModalTask] = useState<Task | null>(null);
   const [activeReviewModalTask, setActiveReviewModalTask] = useState<Task | null>(null);
+  const [activeSubmitReviewTask, setActiveSubmitReviewTask] = useState<Task | null>(null);
   const [preselectedAssigneeId, setPreselectedAssigneeId] = useState<string | undefined>();
   const [showSettings, setShowSettings] = useState(false);
   const [showVictoryModal, setShowVictoryModal] = useState(false);
@@ -38,8 +41,6 @@ export default function App() {
   const [showArchive, setShowArchive] = useState(false);
   const [celebratingKudos, setCelebratingKudos] = useState<{ badge: KudosType; taskTitle: string; managerName: string } | null>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [adminScope, setAdminScope] = useState<'all' | 'my'>('all');
-  const [filterMemberId, setFilterMemberId] = useState<string | null>(null);
   const [toastError, setToastError] = useState<string | null>(null);
 
   const showErrorToast = (msg: string) => {
@@ -102,7 +103,7 @@ export default function App() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const v = params.get('view');
-      if (v === 'team' || v === 'my') {
+      if (v === 'team' || v === 'my' || v === 'clients') {
         setViewMode(v);
       }
     }
@@ -115,7 +116,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (currentUser?.role === 'EMPLOYEE' && viewMode === 'team') {
+    if (currentUser?.role === 'EMPLOYEE' && viewMode !== 'my') {
       setViewMode('my');
     }
   }, [currentUser, viewMode]);
@@ -355,6 +356,30 @@ export default function App() {
   };
 
   // Review Actions
+  const handleSubmitReview = async (taskId: string, reviewerId: string, deliverableLink?: string) => {
+    try {
+      const res = await fetch(`/api/tasks/${taskId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: 'NEEDS_REVIEW',
+          reviewer_id: reviewerId,
+          ...(deliverableLink ? { deliverable_link: deliverableLink } : {}),
+        }),
+      });
+      if (res.ok) {
+        playSound.pop(currentUser?.sound_enabled);
+        await fetchData();
+        setActiveSubmitReviewTask(null);
+      } else {
+        const err = await res.json();
+        showErrorToast(err.error || 'Failed to submit deliverable for review');
+      }
+    } catch {
+      showErrorToast('Network error submitting review');
+    }
+  };
+
   const handleApprove = async (taskId: string, kudosBadge?: KudosType) => {
     const res = await fetch(`/api/tasks/${taskId}`, {
       method: 'PATCH',
@@ -523,17 +548,11 @@ export default function App() {
   // Active workforce members (excluding archived)
   const activeUsers = allUsers.filter((u) => u.is_active !== false);
 
-  // Filter tasks with search, status, and role-based scope
-  const displayedTasks = tasks.filter((t) => {
-    // Manager/Admin scoping: All tasks vs My tasks vs Filter by employee
-    if (currentUser.role === 'MANAGER' || currentUser.role === 'ADMIN') {
-      if (filterMemberId) {
-        if (t.assignee_id !== filterMemberId) return false;
-      } else if (adminScope === 'my') {
-        if (t.assignee_id !== currentUser.id) return false;
-      }
-    }
+  // In "My Tasks" view, strictly show tasks assigned to the current user
+  const myTasks = tasks.filter((t) => t.assignee_id === currentUser.id);
 
+  // Filter tasks with search and status
+  const displayedTasks = myTasks.filter((t) => {
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       const matchTitle = t.title.toLowerCase().includes(q);
@@ -548,14 +567,9 @@ export default function App() {
     return true;
   });
 
-  // Today's Flow metrics computed with respect to active scope
-  const flowTasks = (currentUser.role === 'MANAGER' || currentUser.role === 'ADMIN') && adminScope === 'all' && !filterMemberId
-    ? tasks
-    : filterMemberId
-    ? tasks.filter(t => t.assignee_id === filterMemberId)
-    : tasks.filter(t => t.assignee_id === currentUser.id);
-
-  const completedFlowTasks = flowTasks.filter(t => t.status === 'DONE');
+  // Today's Flow metrics computed with respect to personal tasks
+  const flowTasks = myTasks;
+  const completedFlowTasks = flowTasks.filter((t) => t.status === 'DONE');
   const flowPct = flowTasks.length > 0 ? Math.round((completedFlowTasks.length / flowTasks.length) * 100) : 100;
 
   const getLocalDateString = (d: Date = new Date()) => {
@@ -624,118 +638,110 @@ export default function App() {
       <main className="main-workspace-container" style={{ flex: 1, maxWidth: '1080px', width: '100%', margin: '0 auto', padding: '1.5rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         
         {/* Today's Flow & Progress Strip */}
-        <section
-          className="glass-panel"
-          style={{
-            padding: '0.9rem 1.35rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '1rem',
-            flexWrap: 'wrap',
-          }}
-        >
-          {/* Left: Flow & Clay Progress Rail */}
-          <div 
-            onClick={() => { if (allTasksDone) setShowVictoryModal(true); }}
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '1.25rem', 
+        {viewMode !== 'clients' && (
+          <section
+            className="glass-panel"
+            style={{
+              padding: '0.9rem 1.35rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '1rem',
               flexWrap: 'wrap',
-              cursor: allTasksDone ? 'pointer' : 'default',
             }}
-            title={allTasksDone ? 'Click to view Daily Victory Celebration 🌴' : undefined}
           >
-            <div>
-              <div style={{ fontSize: '0.68rem', fontWeight: 750, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                Today&rsquo;s Flow
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '2px' }}>
-                <span className="tabular-numbers" style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                  {flowPct}%
-                </span>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 550 }}>
-                  ({completedFlowTasks.length} of {flowTasks.length} Completed)
-                </span>
-              </div>
-            </div>
-
-            {/* Tactile Clay Progress Pill */}
-            <div
-              style={{
-                width: '130px',
-                height: '10px',
-                borderRadius: '999px',
-                background: 'var(--support-pill)',
-                overflow: 'hidden',
-                border: '1px solid var(--border-subtle)',
-                boxShadow: 'inset 1.5px 1.5px 3px rgba(45,39,36,0.08), inset -1px -1px 2px rgba(255,255,255,0.95)',
+            {/* Left: Flow & Clay Progress Rail */}
+            <div 
+              onClick={() => { if (allTasksDone) setShowVictoryModal(true); }}
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '1.25rem', 
+                flexWrap: 'wrap',
+                cursor: allTasksDone ? 'pointer' : 'default',
               }}
+              title={allTasksDone ? 'Click to view Daily Victory Celebration 🌴' : undefined}
             >
+              <div>
+                <div style={{ fontSize: '0.68rem', fontWeight: 750, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  Today&rsquo;s Flow
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '2px' }}>
+                  <span className="tabular-numbers" style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                    {flowPct}%
+                  </span>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 550 }}>
+                    ({completedFlowTasks.length} of {flowTasks.length} Completed)
+                  </span>
+                </div>
+              </div>
+
+              {/* Tactile Clay Progress Pill */}
               <div
                 style={{
-                  height: '100%',
-                  width: `${flowPct}%`,
-                  background: 'var(--accent-theme)',
+                  width: '130px',
+                  height: '10px',
                   borderRadius: '999px',
-                  transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-                  boxShadow: 'inset 1px 1px 2px rgba(255,255,255,0.45)',
+                  background: 'var(--support-pill)',
+                  overflow: 'hidden',
+                  border: '1px solid var(--border-subtle)',
+                  boxShadow: 'inset 1.5px 1.5px 3px rgba(45,39,36,0.08), inset -1px -1px 2px rgba(255,255,255,0.95)',
                 }}
-              />
-            </div>
-          </div>
-
-          {/* Right: Team Crew & Blocker Presence */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-              <span style={{ fontSize: '0.74rem', color: 'var(--text-dim)', fontWeight: 600 }}>Team:</span>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                {activeUsers.slice(0, 5).map((u, i) => (
-                  <div
-                    key={u.id}
-                    onClick={() => {
-                      if (currentUser.role === 'MANAGER' || currentUser.role === 'ADMIN') {
-                        setFilterMemberId(filterMemberId === u.id ? null : u.id);
-                        if (filterMemberId !== u.id) setAdminScope('all');
-                      }
-                    }}
-                    title={`${u.name} (${u.designation})${currentUser.role !== 'EMPLOYEE' ? ' - Click to filter deliverables' : ''}`}
-                    style={{
-                      width: '26px',
-                      height: '26px',
-                      borderRadius: '50%',
-                      background: u.id === currentUser.id ? 'var(--accent-theme)' : 'var(--support-pill)',
-                      border: filterMemberId === u.id ? '2px solid var(--accent-theme)' : '2px solid var(--bg-card)',
-                      color: u.id === currentUser.id ? 'var(--accent-contrast)' : 'var(--text-muted)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '0.64rem',
-                      fontWeight: 750,
-                      marginLeft: i > 0 ? '-6px' : '0',
-                      boxShadow: filterMemberId === u.id ? '0 0 10px var(--accent-theme)' : '0 2px 5px rgba(45,39,36,0.06)',
-                      cursor: currentUser.role !== 'EMPLOYEE' ? 'pointer' : 'default',
-                      transform: filterMemberId === u.id ? 'scale(1.15)' : 'none',
-                      zIndex: filterMemberId === u.id ? 10 : 1,
-                      transition: 'all 0.16s ease',
-                    }}
-                  >
-                    {u.name.substring(0, 2).toUpperCase()}
-                  </div>
-                ))}
+              >
+                <div
+                  style={{
+                    height: '100%',
+                    width: `${flowPct}%`,
+                    background: 'var(--accent-theme)',
+                    borderRadius: '999px',
+                    transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+                    boxShadow: 'inset 1px 1px 2px rgba(255,255,255,0.45)',
+                  }}
+                />
               </div>
             </div>
 
-            <div style={{ height: '18px', width: '1px', background: 'var(--border-subtle)' }} />
+            {/* Right: Team Crew & Blocker Presence */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                <span style={{ fontSize: '0.74rem', color: 'var(--text-dim)', fontWeight: 600 }}>Team:</span>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  {activeUsers.slice(0, 5).map((u, i) => (
+                    <div
+                      key={u.id}
+                      title={`${u.name} (${u.designation})`}
+                      style={{
+                        width: '26px',
+                        height: '26px',
+                        borderRadius: '50%',
+                        background: u.id === currentUser.id ? 'var(--accent-theme)' : 'var(--support-pill)',
+                        border: '2px solid var(--bg-card)',
+                        color: u.id === currentUser.id ? 'var(--accent-contrast)' : 'var(--text-muted)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '0.64rem',
+                        fontWeight: 750,
+                        marginLeft: i > 0 ? '-6px' : '0',
+                        boxShadow: '0 2px 5px rgba(45,39,36,0.06)',
+                      }}
+                    >
+                      {u.name.substring(0, 2).toUpperCase()}
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-            {/* Quick Blocker Signal Pill */}
-            <div className="pill-badge" style={{ gap: '0.4rem', padding: '0.3rem 0.75rem' }}>
-              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: blockersOnMe.length > 0 ? 'var(--accent-red)' : 'var(--accent-green)' }} />
-              <span>{blockersOnMe.length > 0 ? `${blockersOnMe.length} Blocker Holding Team` : 'No Active Blockers'}</span>
+              <div style={{ height: '18px', width: '1px', background: 'var(--border-subtle)' }} />
+
+              {/* Quick Blocker Signal Pill */}
+              <div className="pill-badge" style={{ gap: '0.4rem', padding: '0.3rem 0.75rem' }}>
+                <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: blockersOnMe.length > 0 ? 'var(--accent-red)' : 'var(--accent-green)' }} />
+                <span>{blockersOnMe.length > 0 ? `${blockersOnMe.length} Blocker Holding Team` : 'No Active Blockers'}</span>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* VIEW 1: MY TASKS (Personal Isolated Focus) */}
         {viewMode === 'my' && (
@@ -748,118 +754,6 @@ export default function App() {
               onCreateTask={handleCreateTask}
               soundEnabled={currentUser.sound_enabled}
             />
-
-            {/* Manager / Admin Scope Switcher & Employee Filter Bar */}
-            {(currentUser.role === 'MANAGER' || currentUser.role === 'ADMIN') && (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '0.6rem',
-                  flexWrap: 'wrap',
-                  padding: '0.5rem 0.75rem',
-                  borderRadius: '14px',
-                  background: 'var(--support-pill)',
-                  border: '1px solid var(--border-subtle)',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    View Scope:
-                  </span>
-                  <div style={{ display: 'inline-flex', background: 'var(--bg-card)', padding: '2px', borderRadius: '10px', border: '1px solid var(--border-subtle)' }}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAdminScope('all');
-                        setFilterMemberId(null);
-                      }}
-                      style={{
-                        padding: '0.25rem 0.65rem',
-                        minHeight: '28px',
-                        borderRadius: '8px',
-                        fontSize: '0.76rem',
-                        fontWeight: adminScope === 'all' && !filterMemberId ? 750 : 600,
-                        background: adminScope === 'all' && !filterMemberId ? 'var(--support-pill)' : 'transparent',
-                        color: adminScope === 'all' && !filterMemberId ? 'var(--accent-theme)' : 'var(--text-muted)',
-                        border: adminScope === 'all' && !filterMemberId ? '1px solid var(--border-subtle)' : '1px solid transparent',
-                      }}
-                    >
-                      🌐 All Tasks ({tasks.length})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAdminScope('my');
-                        setFilterMemberId(null);
-                      }}
-                      style={{
-                        padding: '0.25rem 0.65rem',
-                        minHeight: '28px',
-                        borderRadius: '8px',
-                        fontSize: '0.76rem',
-                        fontWeight: adminScope === 'my' ? 750 : 600,
-                        background: adminScope === 'my' ? 'var(--support-pill)' : 'transparent',
-                        color: adminScope === 'my' ? 'var(--accent-theme)' : 'var(--text-muted)',
-                        border: adminScope === 'my' ? '1px solid var(--border-subtle)' : '1px solid transparent',
-                      }}
-                    >
-                      👤 My Tasks ({tasks.filter(t => t.assignee_id === currentUser.id).length})
-                    </button>
-                  </div>
-                </div>
-
-                {/* Filter by Member Dropdown */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginLeft: 'auto' }}>
-                  <select
-                    value={filterMemberId || ''}
-                    onChange={(e) => {
-                      const id = e.target.value || null;
-                      setFilterMemberId(id);
-                      if (id) setAdminScope('all');
-                    }}
-                    style={{
-                      padding: '0.3rem 0.6rem',
-                      minHeight: '28px',
-                      borderRadius: '8px',
-                      background: 'var(--bg-card)',
-                      border: '1px solid var(--border-subtle)',
-                      fontSize: '0.76rem',
-                      fontWeight: 650,
-                      color: filterMemberId ? 'var(--accent-theme)' : 'var(--text-muted)',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <option value="">Filter by Employee (All)</option>
-                    {activeUsers.map((u) => (
-                      <option key={u.id} value={u.id}>
-                        {u.name} ({u.designation})
-                      </option>
-                    ))}
-                  </select>
-                  {filterMemberId && (
-                    <button
-                      type="button"
-                      onClick={() => setFilterMemberId(null)}
-                      title="Clear employee filter"
-                      style={{
-                        padding: '0.2rem 0.45rem',
-                        minHeight: '28px',
-                        borderRadius: '8px',
-                        background: 'transparent',
-                        border: '1px solid var(--border-subtle)',
-                        fontSize: '0.72rem',
-                        color: 'var(--text-dim)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Clear ✕
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
 
             {/* Quick Search & Status Filter Bar */}
             <div
@@ -947,6 +841,7 @@ export default function App() {
                       currentUser={currentUser}
                       onUpdateStatus={handleUpdateStatus}
                       onOpenBlockerModal={setActiveBlockerModalTask}
+                      onOpenSubmitReviewModal={(t) => setActiveSubmitReviewTask(t)}
                       onDeleteTask={handleDeleteTask}
                       onSendNudge={handleSendNudge}
                       onUpdateDeliverableLink={handleUpdateDeliverableLink}
@@ -979,6 +874,7 @@ export default function App() {
                       currentUser={currentUser}
                       onUpdateStatus={handleUpdateStatus}
                       onOpenBlockerModal={setActiveBlockerModalTask}
+                      onOpenSubmitReviewModal={(t) => setActiveSubmitReviewTask(t)}
                       onDeleteTask={handleDeleteTask}
                       onSendNudge={handleSendNudge}
                       onUpdateDeliverableLink={handleUpdateDeliverableLink}
@@ -1104,6 +1000,7 @@ export default function App() {
                       currentUser={currentUser}
                       onUpdateStatus={handleUpdateStatus}
                       onOpenBlockerModal={setActiveBlockerModalTask}
+                      onOpenSubmitReviewModal={(t) => setActiveSubmitReviewTask(t)}
                       onDeleteTask={handleDeleteTask}
                       onSendNudge={handleSendNudge}
                       onUpdateDeliverableLink={handleUpdateDeliverableLink}
@@ -1138,6 +1035,7 @@ export default function App() {
                       currentUser={currentUser}
                       onUpdateStatus={handleUpdateStatus}
                       onOpenBlockerModal={setActiveBlockerModalTask}
+                      onOpenSubmitReviewModal={(t) => setActiveSubmitReviewTask(t)}
                       onDeleteTask={handleDeleteTask}
                       onSendNudge={handleSendNudge}
                       onUpdateDeliverableLink={handleUpdateDeliverableLink}
@@ -1187,6 +1085,7 @@ export default function App() {
                             currentUser={currentUser}
                             onUpdateStatus={handleUpdateStatus}
                             onOpenBlockerModal={setActiveBlockerModalTask}
+                            onOpenSubmitReviewModal={(t) => setActiveSubmitReviewTask(t)}
                             onDeleteTask={handleDeleteTask}
                             onSendNudge={handleSendNudge}
                             onUpdateDeliverableLink={handleUpdateDeliverableLink}
@@ -1239,9 +1138,28 @@ export default function App() {
           </div>
         )}
 
+        {/* VIEW 3: CLIENT DELIVERABLES (Monthly Radar for Managers & Admins) */}
+        {viewMode === 'clients' && (currentUser.role === 'MANAGER' || currentUser.role === 'ADMIN') && (
+          <ClientDeliverablesBoard
+            currentUser={currentUser}
+            soundEnabled={currentUser.sound_enabled}
+            showErrorToast={showErrorToast}
+          />
+        )}
+
       </main>
 
       {/* Modals & Overlays */}
+      {activeSubmitReviewTask && (
+        <SubmitReviewModal
+          task={activeSubmitReviewTask}
+          allUsers={activeUsers}
+          currentUser={currentUser}
+          onClose={() => setActiveSubmitReviewTask(null)}
+          onSubmit={handleSubmitReview}
+          soundEnabled={currentUser.sound_enabled ?? true}
+        />
+      )}
       {activeBlockerModalTask && (
         <BlockerModal
           task={activeBlockerModalTask}
