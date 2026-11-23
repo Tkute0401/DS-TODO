@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { User } from '@/types';
-import { Plus, Zap, Calendar, User as UserIcon } from 'lucide-react';
+import { User, DeliverableType, DeliverableStage } from '@/types';
+import { Plus, Zap, Calendar, User as UserIcon, Briefcase } from 'lucide-react';
 import { playSound } from '@/lib/sound';
 
 interface TaskCreationBarProps {
   currentUser: User;
   allUsers: User[];
+  clients?: { id?: string; client_name: string }[];
   isTeamView: boolean;
   preselectedAssigneeId?: string;
   onCreateTask: (data: {
@@ -15,6 +16,11 @@ interface TaskCreationBarProps {
     due_date: string;
     is_urgent: boolean;
     assignee_id: string;
+    client_id?: string;
+    client_name?: string;
+    deliverable_type?: DeliverableType;
+    deliverable_stage?: DeliverableStage;
+    deliverable_count?: number;
   }) => Promise<void>;
   soundEnabled: boolean;
 }
@@ -22,6 +28,7 @@ interface TaskCreationBarProps {
 export function TaskCreationBar({
   currentUser,
   allUsers,
+  clients = [],
   isTeamView,
   preselectedAssigneeId,
   onCreateTask,
@@ -35,7 +42,20 @@ export function TaskCreationBar({
   const [dueDate, setDueDate] = useState(getLocalDateString());
   const [isUrgent, setIsUrgent] = useState(false);
   const [assigneeId, setAssigneeId] = useState(preselectedAssigneeId || currentUser.id);
+  const [selectedClientName, setSelectedClientName] = useState('');
+  const [deliverableType, setDeliverableType] = useState<DeliverableType>('REEL');
+  const [deliverableStage, setDeliverableStage] = useState<DeliverableStage>('PRODUCTION');
+  const [deliverableCount, setDeliverableCount] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Unique client names
+  const clientNames = React.useMemo(() => {
+    const set = new Set<string>();
+    clients.forEach((c) => {
+      if (c.client_name?.trim()) set.add(c.client_name.trim());
+    });
+    return Array.from(set).sort();
+  }, [clients]);
 
   React.useEffect(() => {
     if (preselectedAssigneeId) {
@@ -56,9 +76,16 @@ export function TaskCreationBar({
         due_date: dueDate,
         is_urgent: isUrgent,
         assignee_id: isTeamView ? assigneeId : currentUser.id,
+        client_name: selectedClientName || undefined,
+        deliverable_type: selectedClientName ? deliverableType : undefined,
+        deliverable_stage: selectedClientName ? deliverableStage : undefined,
+        deliverable_count: selectedClientName ? deliverableCount : undefined,
       });
       setTitle('');
       setIsUrgent(false);
+      // Keep or reset client? Resetting ensures next task isn't accidentally labeled, but keeping stage/count default
+      setSelectedClientName('');
+      setDeliverableCount(1);
     } finally {
       setIsSubmitting(false);
     }
@@ -199,6 +226,111 @@ export function TaskCreationBar({
               <span style={{ color: 'var(--text-dim)' }}>Assignee:</span>
               <strong style={{ color: 'var(--text-muted)' }}>You</strong>
             </div>
+          )}
+
+          {/* Client Selection (Optional Deliverable Linkage) */}
+          <div className="pill-badge" style={{ minHeight: '32px', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <Briefcase size={13} color={selectedClientName ? 'var(--accent-theme)' : 'var(--text-muted)'} />
+            <span style={{ color: selectedClientName ? 'var(--accent-theme)' : 'var(--text-dim)', fontSize: '0.74rem', fontWeight: selectedClientName ? 700 : 500 }}>
+              Client:
+            </span>
+            <select
+              value={selectedClientName}
+              onChange={(e) => setSelectedClientName(e.target.value)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: selectedClientName ? 'var(--accent-theme)' : 'var(--text-main)',
+                fontSize: '0.78rem',
+                fontWeight: selectedClientName ? 750 : 600,
+                cursor: 'pointer',
+                padding: 0,
+                maxWidth: '150px',
+                outline: 'none',
+              }}
+            >
+              <option value="" style={{ background: 'var(--bg-card)', color: 'var(--text-main)' }}>
+                None (Internal Task)
+              </option>
+              {clientNames.map((name) => (
+                <option key={name} value={name} style={{ background: 'var(--bg-card)', color: 'var(--text-main)' }}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* If Client is chosen: show Deliverable Type, Workflow Stage, and Quantity inline! */}
+          {Boolean(selectedClientName) && (
+            <>
+              {/* Type: Reel vs Graphic */}
+              <div className="pill-badge" style={{ minHeight: '32px', display: 'flex', alignItems: 'center', gap: '0.25rem', background: 'rgba(6, 182, 212, 0.08)', border: '1px solid rgba(6, 182, 212, 0.25)' }}>
+                <span style={{ fontSize: '0.74rem', color: 'var(--text-dim)' }}>Type:</span>
+                <select
+                  value={deliverableType}
+                  onChange={(e) => setDeliverableType(e.target.value as DeliverableType)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-main)',
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    outline: 'none',
+                    padding: 0,
+                  }}
+                >
+                  <option value="REEL" style={{ background: 'var(--bg-card)', color: 'var(--text-main)' }}>🎬 Reel</option>
+                  <option value="GRAPHIC" style={{ background: 'var(--bg-card)', color: 'var(--text-main)' }}>🎨 Graphic</option>
+                </select>
+              </div>
+
+              {/* Stage: 3 Workflow Columns */}
+              <div className="pill-badge" style={{ minHeight: '32px', display: 'flex', alignItems: 'center', gap: '0.25rem', background: 'rgba(139, 92, 246, 0.08)', border: '1px solid rgba(139, 92, 246, 0.25)' }}>
+                <span style={{ fontSize: '0.74rem', color: 'var(--text-dim)' }}>Stage:</span>
+                <select
+                  value={deliverableStage}
+                  onChange={(e) => setDeliverableStage(e.target.value as DeliverableStage)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-main)',
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    outline: 'none',
+                    padding: 0,
+                  }}
+                >
+                  <option value="PRE_PRODUCTION" style={{ background: 'var(--bg-card)', color: 'var(--text-main)' }}>🎬 Pre-Prod</option>
+                  <option value="PRODUCTION" style={{ background: 'var(--bg-card)', color: 'var(--text-main)' }}>✂️ Production</option>
+                  <option value="PUBLISHED" style={{ background: 'var(--bg-card)', color: 'var(--text-main)' }}>🚀 Published</option>
+                </select>
+              </div>
+
+              {/* Batch Quantity */}
+              <div className="pill-badge" style={{ minHeight: '32px', display: 'flex', alignItems: 'center', gap: '0.25rem' }} title="Number of deliverables in this task">
+                <span style={{ fontSize: '0.74rem', color: 'var(--text-dim)' }}>Qty:</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={50}
+                  value={deliverableCount}
+                  onChange={(e) => setDeliverableCount(Math.max(1, parseInt(e.target.value) || 1))}
+                  style={{
+                    width: '38px',
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-main)',
+                    fontSize: '0.78rem',
+                    fontWeight: 800,
+                    textAlign: 'center',
+                    padding: 0,
+                    outline: 'none',
+                  }}
+                />
+              </div>
+            </>
           )}
         </div>
 

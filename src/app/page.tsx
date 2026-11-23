@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { User, Task, Blocker, NotificationItem, KudosType, BlockerType } from '@/types';
+import { User, Task, Blocker, NotificationItem, KudosType, BlockerType, ClientDeliverable, DeliverableStage, DeliverableType } from '@/types';
 import { Navbar } from '@/components/Navbar';
 import { BlockerAlertBanner } from '@/components/BlockerAlertBanner';
 import { TaskCreationBar } from '@/components/TaskCreationBar';
@@ -24,6 +24,7 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [clients, setClients] = useState<ClientDeliverable[]>([]);
   const [blockersOnMe, setBlockersOnMe] = useState<Blocker[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [viewMode, setViewMode] = useState<'my' | 'team' | 'clients'>('my');
@@ -93,6 +94,11 @@ export default function App() {
       const nRes = await fetch('/api/notifications');
       const nData = await nRes.json();
       if (nData.notifications) setNotifications(nData.notifications);
+
+      // 5. Fetch Client Deliverables for task creation & quick linkage
+      const cRes = await fetch('/api/clients');
+      const cData = await cRes.json();
+      if (cData.clients) setClients(cData.clients);
     } catch {
       // Offline fallback
     } finally {
@@ -118,7 +124,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (currentUser?.role === 'EMPLOYEE' && viewMode !== 'my') {
+    if (currentUser?.role === 'EMPLOYEE' && viewMode === 'team') {
       setViewMode('my');
     }
   }, [currentUser, viewMode]);
@@ -172,6 +178,11 @@ export default function App() {
     due_date: string;
     is_urgent: boolean;
     assignee_id: string;
+    client_id?: string;
+    client_name?: string;
+    deliverable_type?: DeliverableType;
+    deliverable_stage?: DeliverableStage;
+    deliverable_count?: number;
   }) => {
     const res = await fetch('/api/tasks', {
       method: 'POST',
@@ -181,6 +192,25 @@ export default function App() {
     if (res.ok) {
       await fetchData();
       setPreselectedAssigneeId(undefined);
+    }
+  };
+
+  const handleUpdateStage = async (taskId: string, newStage: DeliverableStage) => {
+    playSound.pop(currentUser?.sound_enabled);
+    try {
+      const res = await fetch(`/api/tasks/${taskId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deliverable_stage: newStage }),
+      });
+      if (res.ok) {
+        await fetchData();
+      } else {
+        const err = await res.json();
+        showErrorToast(err.error || 'Failed to update workflow stage');
+      }
+    } catch {
+      showErrorToast('Network error updating stage');
     }
   };
 
@@ -772,6 +802,7 @@ export default function App() {
             <TaskCreationBar
               currentUser={currentUser}
               allUsers={activeUsers}
+              clients={clients}
               isTeamView={false}
               onCreateTask={handleCreateTask}
               soundEnabled={currentUser.sound_enabled}
@@ -871,6 +902,7 @@ export default function App() {
                       onUpdateTitle={handleUpdateTitle}
                       onToggleUrgent={handleToggleUrgent}
                       onResolveBlocker={handleResolveBlocker}
+                      onUpdateStage={handleUpdateStage}
                       soundEnabled={currentUser.sound_enabled}
                     />
                   ))}
@@ -904,6 +936,7 @@ export default function App() {
                       onUpdateTitle={handleUpdateTitle}
                       onToggleUrgent={handleToggleUrgent}
                       onResolveBlocker={handleResolveBlocker}
+                      onUpdateStage={handleUpdateStage}
                       soundEnabled={currentUser.sound_enabled}
                     />
                   ))}
@@ -1030,6 +1063,7 @@ export default function App() {
                       onUpdateTitle={handleUpdateTitle}
                       onToggleUrgent={handleToggleUrgent}
                       onResolveBlocker={handleResolveBlocker}
+                      onUpdateStage={handleUpdateStage}
                       soundEnabled={currentUser.sound_enabled}
                     />
                   ))}
@@ -1065,6 +1099,7 @@ export default function App() {
                       onUpdateTitle={handleUpdateTitle}
                       onToggleUrgent={handleToggleUrgent}
                       onResolveBlocker={handleResolveBlocker}
+                      onUpdateStage={handleUpdateStage}
                       soundEnabled={currentUser.sound_enabled}
                     />
                   ))}
@@ -1115,6 +1150,7 @@ export default function App() {
                             onUpdateTitle={handleUpdateTitle}
                             onToggleUrgent={handleToggleUrgent}
                             onResolveBlocker={handleResolveBlocker}
+                            onUpdateStage={handleUpdateStage}
                             soundEnabled={currentUser.sound_enabled}
                           />
                         ))}
@@ -1134,6 +1170,7 @@ export default function App() {
             <TaskCreationBar
               currentUser={currentUser}
               allUsers={activeUsers}
+              clients={clients}
               isTeamView={true}
               preselectedAssigneeId={preselectedAssigneeId}
               onCreateTask={handleCreateTask}
@@ -1161,12 +1198,14 @@ export default function App() {
           </div>
         )}
 
-        {/* VIEW 3: CLIENT DELIVERABLES (Monthly Radar for Managers & Admins) */}
-        {viewMode === 'clients' && (currentUser.role === 'MANAGER' || currentUser.role === 'ADMIN') && (
+        {/* VIEW 3: CLIENT DELIVERABLES */}
+        {viewMode === 'clients' && (
           <ClientDeliverablesBoard
             currentUser={currentUser}
             soundEnabled={currentUser.sound_enabled}
             showErrorToast={showErrorToast}
+            tasks={tasks}
+            onTasksChange={fetchData}
           />
         )}
 

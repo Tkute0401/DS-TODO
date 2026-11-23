@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Task, User } from '@/types';
+import { Task, User, DeliverableStage } from '@/types';
 import { 
   Check, 
   Clock, 
@@ -34,6 +34,7 @@ interface TaskCardProps {
   onUpdateTitle?: (taskId: string, newTitle: string) => Promise<void>;
   onToggleUrgent?: (taskId: string, isUrgent: boolean) => Promise<void>;
   onResolveBlocker?: (blockerId: string) => Promise<void>;
+  onUpdateStage?: (taskId: string, newStage: DeliverableStage) => Promise<void>;
   soundEnabled: boolean;
 }
 
@@ -50,6 +51,7 @@ export function TaskCard({
   onUpdateTitle,
   onToggleUrgent,
   onResolveBlocker,
+  onUpdateStage,
   soundEnabled,
 }: TaskCardProps) {
   const [nudgeSent, setNudgeSent] = React.useState(false);
@@ -377,6 +379,58 @@ export function TaskCard({
                 }}
               >
                 🏅 {task.kudos_badge.replace('_', ' ')}
+              </span>
+            )}
+
+            {/* Linked Client & Deliverable Workflow Pill */}
+            {task.client_name && (
+              <span
+                className="pill-badge"
+                style={{
+                  background: 'rgba(6, 182, 212, 0.12)',
+                  color: 'var(--accent-theme)',
+                  border: '1px solid rgba(6, 182, 212, 0.3)',
+                  fontWeight: 700,
+                  fontSize: '0.72rem',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                }}
+              >
+                <span>💼 {task.client_name}</span>
+                <span>•</span>
+                <span>
+                  {task.deliverable_count && task.deliverable_count > 1 ? `${task.deliverable_count}x ` : ''}
+                  {task.deliverable_type === 'GRAPHIC' ? '🎨 Graphic' : '🎬 Reel'}
+                </span>
+                <span>•</span>
+                <span style={{ fontWeight: 800, color: task.deliverable_stage === 'PUBLISHED' ? 'var(--accent-green)' : 'inherit' }}>
+                  {task.deliverable_stage === 'PRE_PRODUCTION' ? '🎬 Pre-Prod' : task.deliverable_stage === 'PUBLISHED' ? '🚀 Published' : '✂️ Production'}
+                </span>
+                {canModifyMeta && !isDone && onUpdateStage && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const nextStage = task.deliverable_stage === 'PRE_PRODUCTION' ? 'PRODUCTION' : task.deliverable_stage === 'PRODUCTION' ? 'PUBLISHED' : 'PRE_PRODUCTION';
+                      onUpdateStage(task.id, nextStage);
+                    }}
+                    title="Advance to next workflow stage"
+                    style={{
+                      border: 'none',
+                      background: 'rgba(255,255,255,0.18)',
+                      borderRadius: '5px',
+                      padding: '0.1rem 0.35rem',
+                      fontSize: '0.66rem',
+                      fontWeight: 750,
+                      color: 'var(--text-main)',
+                      cursor: 'pointer',
+                      marginLeft: '0.15rem',
+                    }}
+                  >
+                    ➔ {task.deliverable_stage === 'PRE_PRODUCTION' ? 'Production' : task.deliverable_stage === 'PRODUCTION' ? 'Publish' : 'Pre-Prod'}
+                  </button>
+                )}
               </span>
             )}
           </div>

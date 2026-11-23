@@ -25,9 +25,15 @@ export async function PATCH(
 
   try {
     const body = await req.json();
-    const { title, status, deliverable_link, due_date, is_urgent, revision_note, kudos_badge, assignee_id, reviewer_id } = body;
+    const { title, status, deliverable_link, due_date, is_urgent, revision_note, kudos_badge, assignee_id, reviewer_id, client_id, client_name, deliverable_type, deliverable_stage, deliverable_count } = body;
 
     const updates: Record<string, unknown> = {};
+
+    if (client_id !== undefined) updates.client_id = client_id;
+    if (client_name !== undefined) updates.client_name = client_name;
+    if (deliverable_type !== undefined) updates.deliverable_type = deliverable_type;
+    if (deliverable_stage !== undefined) updates.deliverable_stage = deliverable_stage;
+    if (deliverable_count !== undefined) updates.deliverable_count = deliverable_count;
 
     if (title !== undefined && typeof title === 'string') {
       const trimmed = title.trim();

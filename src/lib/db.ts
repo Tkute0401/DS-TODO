@@ -1,5 +1,5 @@
 import { neon } from '@neondatabase/serverless';
-import { User, Task, Blocker, NotificationItem, KudosItem, ClientDeliverable } from '@/types';
+import { User, Task, Blocker, NotificationItem, KudosItem, ClientDeliverable, DeliverableType } from '@/types';
 
 // Initial seed administrator (Tanmay Kute)
 const SEED_USERS: (User & { password_hash: string })[] = [
@@ -115,16 +115,67 @@ class InMemoryDB {
     };
   }
 
+  async syncTaskDeliverableDelta(
+    clientName?: string,
+    month?: string,
+    type?: DeliverableType,
+    delta?: number
+  ) {
+    if (!clientName || !month || !type || !delta) return;
+    const normalizedName = clientName.trim().toLowerCase();
+    const deliverables = await this.getClientDeliverables(month);
+    const client = deliverables.find((c) => c.client_name.trim().toLowerCase() === normalizedName);
+    if (client) {
+      const updated = { ...client };
+      if (type === 'REEL') {
+        updated.completed_reels = Math.max(0, (updated.completed_reels || 0) + delta);
+      } else if (type === 'GRAPHIC') {
+        updated.completed_graphics = Math.max(0, (updated.completed_graphics || 0) + delta);
+      }
+      await this.upsertClientDeliverable(updated);
+    }
+  }
+
+  async syncDeliverablesForTaskTransition(oldTask: Task | null, newTask: Task | null) {
+    const wasContributed = Boolean(oldTask && oldTask.status === 'DONE' && oldTask.deliverable_stage === 'PUBLISHED' && oldTask.client_name && oldTask.deliverable_type);
+    const isContributed = Boolean(newTask && newTask.status === 'DONE' && newTask.deliverable_stage === 'PUBLISHED' && newTask.client_name && newTask.deliverable_type);
+
+    if (wasContributed && isContributed && oldTask && newTask) {
+      const oldMonth = (oldTask.due_date || oldTask.created_at || '').slice(0, 7);
+      const newMonth = (newTask.due_date || newTask.created_at || '').slice(0, 7);
+      if (oldMonth === newMonth && oldTask.client_name === newTask.client_name && oldTask.deliverable_type === newTask.deliverable_type) {
+        const delta = (newTask.deliverable_count || 1) - (oldTask.deliverable_count || 1);
+        if (delta !== 0) {
+          await this.syncTaskDeliverableDelta(newTask.client_name, newMonth, newTask.deliverable_type, delta);
+        }
+      } else {
+        await this.syncTaskDeliverableDelta(oldTask.client_name, oldMonth, oldTask.deliverable_type, -(oldTask.deliverable_count || 1));
+        await this.syncTaskDeliverableDelta(newTask.client_name, newMonth, newTask.deliverable_type, +(newTask.deliverable_count || 1));
+      }
+    } else if (wasContributed && !isContributed && oldTask) {
+      const oldMonth = (oldTask.due_date || oldTask.created_at || '').slice(0, 7);
+      await this.syncTaskDeliverableDelta(oldTask.client_name, oldMonth, oldTask.deliverable_type, -(oldTask.deliverable_count || 1));
+    } else if (!wasContributed && isContributed && newTask) {
+      const newMonth = (newTask.due_date || newTask.created_at || '').slice(0, 7);
+      await this.syncTaskDeliverableDelta(newTask.client_name, newMonth, newTask.deliverable_type, +(newTask.deliverable_count || 1));
+    }
+  }
+
   async createTask(task: Task) {
     this.tasks.unshift(task);
-    return this.enrichTask(task);
+    const enriched = this.enrichTask(task);
+    await this.syncDeliverablesForTaskTransition(null, enriched);
+    return enriched;
   }
 
   async updateTask(id: string, updates: Partial<Task>) {
     const idx = this.tasks.findIndex((t) => t.id === id);
     if (idx !== -1) {
+      const oldTask = { ...this.tasks[idx] };
       this.tasks[idx] = { ...this.tasks[idx], ...updates };
-      return this.enrichTask(this.tasks[idx]);
+      const enriched = this.enrichTask(this.tasks[idx]);
+      await this.syncDeliverablesForTaskTransition(oldTask, enriched);
+      return enriched;
     }
     return null;
   }
@@ -132,7 +183,9 @@ class InMemoryDB {
   async deleteTask(id: string) {
     const idx = this.tasks.findIndex((t) => t.id === id);
     if (idx !== -1) {
+      const oldTask = { ...this.tasks[idx] };
       this.tasks.splice(idx, 1);
+      await this.syncDeliverablesForTaskTransition(oldTask, null);
       return true;
     }
     return false;
@@ -329,6 +382,11 @@ class NeonDB {
       await this.sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS deadline_extended BOOLEAN DEFAULT false;`;
       await this.sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS kudos_badge TEXT;`;
       await this.sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS reviewer_id TEXT;`;
+      await this.sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS client_id TEXT;`;
+      await this.sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS client_name TEXT;`;
+      await this.sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS deliverable_type TEXT;`;
+      await this.sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS deliverable_stage TEXT;`;
+      await this.sql`ALTER TABLE tasks ADD COLUMN IF NOT EXISTS deliverable_count INTEGER DEFAULT 1;`;
 
       await this.sql`
         CREATE TABLE IF NOT EXISTS client_deliverables (
@@ -545,13 +603,69 @@ class NeonDB {
     return enriched[0];
   }
 
+  async syncTaskDeliverableDelta(
+    clientName?: string,
+    month?: string,
+    type?: DeliverableType,
+    delta?: number
+  ) {
+    if (!clientName || !month || !type || !delta) return;
+    await this.ensureSchema();
+    const deliverables = await this.getClientDeliverables(month);
+    const normalizedName = clientName.trim().toLowerCase();
+    const client = deliverables.find((c) => c.client_name.trim().toLowerCase() === normalizedName);
+    if (client) {
+      if (type === 'REEL') {
+        const newVal = Math.max(0, (client.completed_reels || 0) + delta);
+        await this.sql`UPDATE client_deliverables SET completed_reels = ${newVal}, updated_at = NOW() WHERE id = ${client.id};`;
+      } else if (type === 'GRAPHIC') {
+        const newVal = Math.max(0, (client.completed_graphics || 0) + delta);
+        await this.sql`UPDATE client_deliverables SET completed_graphics = ${newVal}, updated_at = NOW() WHERE id = ${client.id};`;
+      }
+    }
+  }
+
+  async syncDeliverablesForTaskTransition(oldTask: Task | null, newTask: Task | null) {
+    const wasContributed = Boolean(oldTask && oldTask.status === 'DONE' && oldTask.deliverable_stage === 'PUBLISHED' && oldTask.client_name && oldTask.deliverable_type);
+    const isContributed = Boolean(newTask && newTask.status === 'DONE' && newTask.deliverable_stage === 'PUBLISHED' && newTask.client_name && newTask.deliverable_type);
+
+    if (wasContributed && isContributed && oldTask && newTask) {
+      const oldMonth = (oldTask.due_date || oldTask.created_at || '').slice(0, 7);
+      const newMonth = (newTask.due_date || newTask.created_at || '').slice(0, 7);
+      if (oldMonth === newMonth && oldTask.client_name === newTask.client_name && oldTask.deliverable_type === newTask.deliverable_type) {
+        const delta = (newTask.deliverable_count || 1) - (oldTask.deliverable_count || 1);
+        if (delta !== 0) {
+          await this.syncTaskDeliverableDelta(newTask.client_name, newMonth, newTask.deliverable_type, delta);
+        }
+      } else {
+        await this.syncTaskDeliverableDelta(oldTask.client_name, oldMonth, oldTask.deliverable_type, -(oldTask.deliverable_count || 1));
+        await this.syncTaskDeliverableDelta(newTask.client_name, newMonth, newTask.deliverable_type, +(newTask.deliverable_count || 1));
+      }
+    } else if (wasContributed && !isContributed && oldTask) {
+      const oldMonth = (oldTask.due_date || oldTask.created_at || '').slice(0, 7);
+      await this.syncTaskDeliverableDelta(oldTask.client_name, oldMonth, oldTask.deliverable_type, -(oldTask.deliverable_count || 1));
+    } else if (!wasContributed && isContributed && newTask) {
+      const newMonth = (newTask.due_date || newTask.created_at || '').slice(0, 7);
+      await this.syncTaskDeliverableDelta(newTask.client_name, newMonth, newTask.deliverable_type, +(newTask.deliverable_count || 1));
+    }
+  }
+
   async createTask(task: Task) {
     await this.ensureSchema();
     await this.sql`
-      INSERT INTO tasks (id, title, creator_id, assignee_id, reviewer_id, status, is_urgent, due_date, deadline_extended, deliverable_link, kudos_badge)
-      VALUES (${task.id}, ${task.title}, ${task.creator_id}, ${task.assignee_id}, ${task.reviewer_id || null}, ${task.status}, ${task.is_urgent}, ${task.due_date}, ${Boolean(task.deadline_extended)}, ${task.deliverable_link || null}, ${task.kudos_badge || null});
+      INSERT INTO tasks (
+        id, title, creator_id, assignee_id, reviewer_id, status, is_urgent, due_date, deadline_extended, deliverable_link, kudos_badge,
+        client_id, client_name, deliverable_type, deliverable_stage, deliverable_count
+      )
+      VALUES (
+        ${task.id}, ${task.title}, ${task.creator_id}, ${task.assignee_id}, ${task.reviewer_id || null}, ${task.status}, ${task.is_urgent}, ${task.due_date}, 
+        ${Boolean(task.deadline_extended)}, ${task.deliverable_link || null}, ${task.kudos_badge || null},
+        ${task.client_id || null}, ${task.client_name || null}, ${task.deliverable_type || null}, ${task.deliverable_stage || null}, ${task.deliverable_count || 1}
+      );
     `;
-    return this.getTaskById(task.id) as Promise<Task>;
+    const created = await this.getTaskById(task.id) as Task;
+    await this.syncDeliverablesForTaskTransition(null, created);
+    return created;
   }
 
   async updateTask(id: string, updates: Partial<Task>) {
@@ -572,15 +686,26 @@ class NeonDB {
         completed_at = ${merged.completed_at ? new Date(merged.completed_at) : null},
         review_started_at = ${merged.review_started_at ? new Date(merged.review_started_at) : null},
         revision_note = ${merged.revision_note || null},
-        kudos_badge = ${merged.kudos_badge || null}
+        kudos_badge = ${merged.kudos_badge || null},
+        client_id = ${merged.client_id || null},
+        client_name = ${merged.client_name || null},
+        deliverable_type = ${merged.deliverable_type || null},
+        deliverable_stage = ${merged.deliverable_stage || null},
+        deliverable_count = ${merged.deliverable_count || 1}
       WHERE id = ${id};
     `;
-    return this.getTaskById(id);
+    const updated = await this.getTaskById(id);
+    await this.syncDeliverablesForTaskTransition(current, updated);
+    return updated;
   }
 
   async deleteTask(id: string) {
     await this.ensureSchema();
+    const current = await this.getTaskById(id);
     await this.sql`DELETE FROM tasks WHERE id = ${id};`;
+    if (current) {
+      await this.syncDeliverablesForTaskTransition(current, null);
+    }
     return true;
   }
 

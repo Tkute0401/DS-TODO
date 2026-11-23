@@ -164,33 +164,33 @@ export function Navbar({
           </div>
         </div>
 
-        {/* View Switcher (For Managers & Admins - Desktop) */}
-        {(user.role === 'MANAGER' || user.role === 'ADMIN') && (
-          <div className="hide-on-mobile" style={{ 
-            display: 'flex', 
-            background: 'var(--support-pill)', 
-            padding: '3px', 
-            borderRadius: '14px',
-            border: '1px solid var(--border-subtle)',
-            boxShadow: 'inset 1px 1px 3px rgba(45, 39, 36, 0.05)',
-          }}>
-            <button
-              onClick={() => onViewModeChange('my')}
-              style={{
-                padding: '0.35rem 0.9rem',
-                minHeight: '34px',
-                borderRadius: '10px',
-                background: viewMode === 'my' ? 'var(--bg-card)' : 'transparent',
-                color: viewMode === 'my' ? 'var(--text-main)' : 'var(--text-muted)',
-                fontWeight: viewMode === 'my' ? 700 : 600,
-                fontSize: '0.82rem',
-                border: viewMode === 'my' ? '1px solid var(--border-subtle)' : '1px solid transparent',
-                boxShadow: viewMode === 'my' ? '0 2px 6px var(--clay-drop-shadow-soft), inset 1px 1px 2px var(--clay-highlight)' : 'none',
-              }}
-            >
-              <ListTodo size={14} />
-              <span>My Tasks</span>
-            </button>
+        {/* View Switcher (Desktop) */}
+        <div className="hide-on-mobile" style={{ 
+          display: 'flex', 
+          background: 'var(--support-pill)', 
+          padding: '3px', 
+          borderRadius: '14px',
+          border: '1px solid var(--border-subtle)',
+          boxShadow: 'inset 1px 1px 3px rgba(45, 39, 36, 0.05)',
+        }}>
+          <button
+            onClick={() => onViewModeChange('my')}
+            style={{
+              padding: '0.35rem 0.9rem',
+              minHeight: '34px',
+              borderRadius: '10px',
+              background: viewMode === 'my' ? 'var(--bg-card)' : 'transparent',
+              color: viewMode === 'my' ? 'var(--text-main)' : 'var(--text-muted)',
+              fontWeight: viewMode === 'my' ? 700 : 600,
+              fontSize: '0.82rem',
+              border: viewMode === 'my' ? '1px solid var(--border-subtle)' : '1px solid transparent',
+              boxShadow: viewMode === 'my' ? '0 2px 6px var(--clay-drop-shadow-soft), inset 1px 1px 2px var(--clay-highlight)' : 'none',
+            }}
+          >
+            <ListTodo size={14} />
+            <span>My Tasks</span>
+          </button>
+          {(user.role === 'MANAGER' || user.role === 'ADMIN') && (
             <button
               onClick={() => onViewModeChange('team')}
               style={{
@@ -208,25 +208,25 @@ export function Navbar({
               <Users size={14} />
               <span>Team Board</span>
             </button>
-            <button
-              onClick={() => onViewModeChange('clients')}
-              style={{
-                padding: '0.35rem 0.9rem',
-                minHeight: '34px',
-                borderRadius: '10px',
-                background: viewMode === 'clients' ? 'var(--bg-card)' : 'transparent',
-                color: viewMode === 'clients' ? 'var(--text-main)' : 'var(--text-muted)',
-                fontWeight: viewMode === 'clients' ? 700 : 600,
-                fontSize: '0.82rem',
-                border: viewMode === 'clients' ? '1px solid var(--border-subtle)' : '1px solid transparent',
-                boxShadow: viewMode === 'clients' ? '0 2px 6px var(--clay-drop-shadow-soft), inset 1px 1px 2px var(--clay-highlight)' : 'none',
-              }}
-            >
-              <Briefcase size={14} />
-              <span>Client Deliverables</span>
-            </button>
-          </div>
-        )}
+          )}
+          <button
+            onClick={() => onViewModeChange('clients')}
+            style={{
+              padding: '0.35rem 0.9rem',
+              minHeight: '34px',
+              borderRadius: '10px',
+              background: viewMode === 'clients' ? 'var(--bg-card)' : 'transparent',
+              color: viewMode === 'clients' ? 'var(--text-main)' : 'var(--text-muted)',
+              fontWeight: viewMode === 'clients' ? 700 : 600,
+              fontSize: '0.82rem',
+              border: viewMode === 'clients' ? '1px solid var(--border-subtle)' : '1px solid transparent',
+              boxShadow: viewMode === 'clients' ? '0 2px 6px var(--clay-drop-shadow-soft), inset 1px 1px 2px var(--clay-highlight)' : 'none',
+            }}
+          >
+            <Briefcase size={14} />
+            <span>Client Deliverables</span>
+          </button>
+        </div>
 
         {/* Right Action Cluster */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -646,38 +646,38 @@ export function Navbar({
               </div>
             </div>
 
-            {/* 1. Board Switcher (Managers / Admins) */}
-            {(user.role === 'MANAGER' || user.role === 'ADMIN') && (
-              <div style={{ marginBottom: '1.25rem' }}>
-                <div style={{ fontSize: '0.68rem', fontWeight: 750, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.45rem' }}>
-                  Workspace Board
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.35rem', background: 'var(--support-pill)', padding: '3px', borderRadius: '14px', border: '1px solid var(--border-subtle)' }}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onViewModeChange('my');
-                      setShowMobileDrawer(false);
-                    }}
-                    style={{
-                      padding: '0.5rem 0.3rem',
-                      minHeight: '40px',
-                      borderRadius: '10px',
-                      background: viewMode === 'my' ? 'var(--bg-card)' : 'transparent',
-                      color: viewMode === 'my' ? 'var(--text-main)' : 'var(--text-muted)',
-                      fontWeight: viewMode === 'my' ? 750 : 600,
-                      fontSize: '0.76rem',
-                      border: viewMode === 'my' ? '1px solid var(--border-subtle)' : '1px solid transparent',
-                      boxShadow: viewMode === 'my' ? '0 2px 6px var(--clay-drop-shadow-soft)' : 'none',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '0.2rem',
-                    }}
-                  >
-                    <ListTodo size={14} />
-                    <span>My Tasks</span>
-                  </button>
+            {/* 1. Board Switcher */}
+            <div style={{ marginBottom: '1.25rem' }}>
+              <div style={{ fontSize: '0.68rem', fontWeight: 750, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.45rem' }}>
+                Workspace Board
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: (user.role === 'MANAGER' || user.role === 'ADMIN') ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)', gap: '0.35rem', background: 'var(--support-pill)', padding: '3px', borderRadius: '14px', border: '1px solid var(--border-subtle)' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onViewModeChange('my');
+                    setShowMobileDrawer(false);
+                  }}
+                  style={{
+                    padding: '0.5rem 0.3rem',
+                    minHeight: '40px',
+                    borderRadius: '10px',
+                    background: viewMode === 'my' ? 'var(--bg-card)' : 'transparent',
+                    color: viewMode === 'my' ? 'var(--text-main)' : 'var(--text-muted)',
+                    fontWeight: viewMode === 'my' ? 750 : 600,
+                    fontSize: '0.76rem',
+                    border: viewMode === 'my' ? '1px solid var(--border-subtle)' : '1px solid transparent',
+                    boxShadow: viewMode === 'my' ? '0 2px 6px var(--clay-drop-shadow-soft)' : 'none',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '0.2rem',
+                  }}
+                >
+                  <ListTodo size={14} />
+                  <span>My Tasks</span>
+                </button>
+                {(user.role === 'MANAGER' || user.role === 'ADMIN') && (
                   <button
                     type="button"
                     onClick={() => {
@@ -703,34 +703,34 @@ export function Navbar({
                     <Users size={14} />
                     <span>Team Board</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onViewModeChange('clients');
-                      setShowMobileDrawer(false);
-                    }}
-                    style={{
-                      padding: '0.5rem 0.3rem',
-                      minHeight: '40px',
-                      borderRadius: '10px',
-                      background: viewMode === 'clients' ? 'var(--bg-card)' : 'transparent',
-                      color: viewMode === 'clients' ? 'var(--text-main)' : 'var(--text-muted)',
-                      fontWeight: viewMode === 'clients' ? 750 : 600,
-                      fontSize: '0.76rem',
-                      border: viewMode === 'clients' ? '1px solid var(--border-subtle)' : '1px solid transparent',
-                      boxShadow: viewMode === 'clients' ? '0 2px 6px var(--clay-drop-shadow-soft)' : 'none',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '0.2rem',
-                    }}
-                  >
-                    <Briefcase size={14} />
-                    <span>Clients</span>
-                  </button>
-                </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    onViewModeChange('clients');
+                    setShowMobileDrawer(false);
+                  }}
+                  style={{
+                    padding: '0.5rem 0.3rem',
+                    minHeight: '40px',
+                    borderRadius: '10px',
+                    background: viewMode === 'clients' ? 'var(--bg-card)' : 'transparent',
+                    color: viewMode === 'clients' ? 'var(--text-main)' : 'var(--text-muted)',
+                    fontWeight: viewMode === 'clients' ? 750 : 600,
+                    fontSize: '0.76rem',
+                    border: viewMode === 'clients' ? '1px solid var(--border-subtle)' : '1px solid transparent',
+                    boxShadow: viewMode === 'clients' ? '0 2px 6px var(--clay-drop-shadow-soft)' : 'none',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '0.2rem',
+                  }}
+                >
+                  <Briefcase size={14} />
+                  <span>Clients</span>
+                </button>
               </div>
-            )}
+            </div>
 
             {/* 2. Theme Selection */}
             <div style={{ marginBottom: '1.25rem' }}>

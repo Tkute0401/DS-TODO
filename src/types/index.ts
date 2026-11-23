@@ -1,6 +1,8 @@
 export type UserRole = 'ADMIN' | 'MANAGER' | 'EMPLOYEE';
 export type ThemeSkin = 'OBSIDIAN' | 'CYBERPUNK' | 'MATCHA' | 'SUNSET';
 export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'NEEDS_REVIEW' | 'DONE';
+export type DeliverableType = 'REEL' | 'GRAPHIC';
+export type DeliverableStage = 'PRE_PRODUCTION' | 'PRODUCTION' | 'PUBLISHED';
 export type BlockerType = 'COLLEAGUE' | 'CLIENT' | 'EXTERNAL';
 export type BlockerStatus = 'ACTIVE' | 'RESOLVED';
 export type KudosType = 'SPEED_DEMON' | 'PIXEL_PERFECT' | 'BIG_BRAIN' | 'CHEFS_KISS';
@@ -52,6 +54,11 @@ export interface Task {
   review_started_at?: string;
   revision_note?: string;
   kudos_badge?: KudosType;
+  client_id?: string;
+  client_name?: string;
+  deliverable_type?: DeliverableType;
+  deliverable_stage?: DeliverableStage;
+  deliverable_count?: number;
   active_blocker?: Blocker;
   created_at: string;
 }

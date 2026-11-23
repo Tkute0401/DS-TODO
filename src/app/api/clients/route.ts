@@ -9,11 +9,6 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Only Managers and Admins can view client deliverables
-  if (user.role !== 'MANAGER' && user.role !== 'ADMIN') {
-    return NextResponse.json({ error: 'Manager or Admin access required' }, { status: 403 });
-  }
-
   const { searchParams } = new URL(req.url);
   const month = searchParams.get('month') || undefined;
 

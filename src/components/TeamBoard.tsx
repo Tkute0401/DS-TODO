@@ -252,6 +252,11 @@ export function TeamBoard({
                           Self-Made
                         </span>
                       )}
+                      {t.client_name && (
+                        <span style={{ fontSize: '0.7rem', padding: '0.1rem 0.45rem', borderRadius: '6px', background: 'rgba(6, 182, 212, 0.15)', color: 'var(--accent-theme)', fontWeight: 700 }}>
+                          💼 {t.client_name} • {t.deliverable_stage === 'PRE_PRODUCTION' ? 'Pre-Prod' : t.deliverable_stage === 'PUBLISHED' ? 'Published' : 'Production'}
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -533,6 +538,11 @@ export function TeamBoard({
                                 Self-Made
                               </span>
                             )}
+                            {t.client_name && (
+                              <span style={{ fontSize: '0.68rem', padding: '0.1rem 0.45rem', borderRadius: '6px', background: 'rgba(6, 182, 212, 0.15)', color: 'var(--accent-theme)', fontWeight: 700 }}>
+                                💼 {t.client_name} • {t.deliverable_stage === 'PRE_PRODUCTION' ? 'Pre-Prod' : t.deliverable_stage === 'PUBLISHED' ? 'Published' : 'Production'}
+                              </span>
+                            )}
                           </div>
                           <div style={{ color: 'var(--text-muted)', fontSize: '0.74rem', marginTop: '0.25rem', fontWeight: 550, display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
                             <span>Due: <span className="tabular-numbers">{t.due_date}</span></span>
@@ -714,6 +724,11 @@ export function TeamBoard({
                             {isSelfMade && (
                               <span style={{ fontSize: '0.68rem', padding: '0.1rem 0.45rem', borderRadius: '6px', background: 'rgba(139, 92, 246, 0.15)', color: 'var(--accent-purple, #8b5cf6)', fontWeight: 650 }}>
                                 Self-Made
+                              </span>
+                            )}
+                            {t.client_name && (
+                              <span style={{ fontSize: '0.68rem', padding: '0.1rem 0.45rem', borderRadius: '6px', background: 'rgba(6, 182, 212, 0.15)', color: 'var(--accent-theme)', fontWeight: 700 }}>
+                                💼 {t.client_name} • {t.deliverable_stage === 'PRE_PRODUCTION' ? 'Pre-Prod' : t.deliverable_stage === 'PUBLISHED' ? 'Published' : 'Production'}
                               </span>
                             )}
                           </div>

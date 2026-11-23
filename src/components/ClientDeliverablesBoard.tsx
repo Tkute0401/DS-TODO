@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { User, ClientDeliverable } from '@/types';
+import { User, ClientDeliverable, Task, DeliverableType, DeliverableStage } from '@/types';
 import { 
   Briefcase, 
   Plus, 
@@ -15,7 +15,12 @@ import {
   Sparkles, 
   Trash2, 
   Edit3, 
-  X
+  X,
+  Check,
+  Layers,
+  ArrowRight,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { playSound } from '@/lib/sound';
@@ -24,12 +29,16 @@ interface ClientDeliverablesBoardProps {
   currentUser: User;
   soundEnabled: boolean;
   showErrorToast: (msg: string) => void;
+  tasks?: Task[];
+  onTasksChange?: () => void;
 }
 
 export function ClientDeliverablesBoard({
   currentUser,
   soundEnabled,
   showErrorToast,
+  tasks = [],
+  onTasksChange,
 }: ClientDeliverablesBoardProps) {
   // Current active month formatted as YYYY-MM
   const currentActualMonth = useMemo(() => {
@@ -43,6 +52,16 @@ export function ClientDeliverablesBoard({
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null);
   const [editingClient, setEditingClient] = useState<ClientDeliverable | null>(null);
   const [clientToDelete, setClientToDelete] = useState<ClientDeliverable | null>(null);
+
+  // Workflow pipeline states
+  const [quickAddState, setQuickAddState] = useState<{ clientId: string; stage: DeliverableStage } | null>(null);
+  const [quickAddTitle, setQuickAddTitle] = useState('');
+  const [quickAddType, setQuickAddType] = useState<DeliverableType>('REEL');
+  const [collapsedClients, setCollapsedClients] = useState<Record<string, boolean>>({});
+
+  const toggleCollapseClient = (clientId: string) => {
+    setCollapsedClients((prev) => ({ ...prev, [clientId]: !prev[clientId] }));
+  };
 
   // Form states
   const [nameInput, setNameInput] = useState('');
@@ -239,6 +258,426 @@ export function ClientDeliverablesBoard({
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Pipeline Handlers
+  const handleAdvanceTaskStage = async (taskId: string, currentStage: DeliverableStage) => {
+    const nextStage: DeliverableStage =
+      currentStage === 'PRE_PRODUCTION' ? 'PRODUCTION' : 'PUBLISHED';
+    playSound.pop(soundEnabled);
+    try {
+      const res = await fetch(`/api/tasks/${taskId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deliverable_stage: nextStage }),
+      });
+      if (!res.ok) throw new Error();
+      if (onTasksChange) onTasksChange();
+      await fetchMonthDeliverables(selectedMonth);
+    } catch {
+      showErrorToast('Failed to advance workflow stage.');
+    }
+  };
+
+  const handleUpdateTaskStageDirect = async (taskId: string, stage: DeliverableStage) => {
+    playSound.pop(soundEnabled);
+    try {
+      const res = await fetch(`/api/tasks/${taskId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deliverable_stage: stage }),
+      });
+      if (!res.ok) throw new Error();
+      if (onTasksChange) onTasksChange();
+      await fetchMonthDeliverables(selectedMonth);
+    } catch {
+      showErrorToast('Failed to update stage.');
+    }
+  };
+
+  const handleToggleTaskStatus = async (task: Task) => {
+    const newStatus = task.status === 'DONE' ? 'IN_PROGRESS' : 'DONE';
+    playSound.pop(soundEnabled);
+    if (newStatus === 'DONE') {
+      confetti({ particleCount: 30, spread: 50, origin: { y: 0.8 } });
+    }
+    try {
+      const res = await fetch(`/api/tasks/${task.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (!res.ok) throw new Error();
+      if (onTasksChange) onTasksChange();
+      await fetchMonthDeliverables(selectedMonth);
+    } catch {
+      showErrorToast('Failed to update deliverable status.');
+    }
+  };
+
+  const submitQuickAdd = async (clientName: string, stage: DeliverableStage) => {
+    if (!quickAddTitle.trim()) return;
+    playSound.pop(soundEnabled);
+    try {
+      const res = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: quickAddTitle.trim(),
+          client_name: clientName,
+          deliverable_stage: stage,
+          deliverable_type: quickAddType,
+          deliverable_count: 1,
+        }),
+      });
+      if (!res.ok) throw new Error();
+      setQuickAddState(null);
+      setQuickAddTitle('');
+      if (onTasksChange) onTasksChange();
+      await fetchMonthDeliverables(selectedMonth);
+    } catch {
+      showErrorToast('Failed to create task in pipeline.');
+    }
+  };
+
+  const renderWorkflowColumn = (
+    client: ClientDeliverable,
+    stage: DeliverableStage,
+    title: string,
+    subtitle: string,
+    stageTasks: Task[]
+  ) => {
+    const isAdding = quickAddState?.clientId === client.id && quickAddState?.stage === stage;
+    const stageColor =
+      stage === 'PRE_PRODUCTION'
+        ? 'var(--accent-purple, #8b5cf6)'
+        : stage === 'PRODUCTION'
+        ? 'var(--accent-theme)'
+        : 'var(--accent-green)';
+
+    return (
+      <div
+        key={stage}
+        style={{
+          background: 'var(--support-pill)',
+          borderRadius: '14px',
+          border: '1px solid var(--border-subtle)',
+          padding: '0.65rem',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.5rem',
+          minWidth: 0,
+        }}
+      >
+        {/* Column Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.3rem' }}>
+          <div>
+            <div style={{ fontSize: '0.76rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <span>{title}</span>
+            </div>
+            <div style={{ fontSize: '0.64rem', color: 'var(--text-dim)' }}>{subtitle}</div>
+          </div>
+          <span
+            className="pill-badge tabular-numbers"
+            style={{
+              fontSize: '0.65rem',
+              padding: '0.05rem 0.35rem',
+              fontWeight: 800,
+              background: 'var(--bg-card)',
+              color: stageTasks.length > 0 ? stageColor : 'var(--text-dim)',
+            }}
+          >
+            {stageTasks.length}
+          </span>
+        </div>
+
+        {/* Task Cards in this Stage */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', flex: 1 }}>
+          {stageTasks.map((t) => {
+            const isDone = t.status === 'DONE';
+            return (
+              <div
+                key={t.id}
+                style={{
+                  background: 'var(--bg-card)',
+                  borderRadius: '10px',
+                  padding: '0.55rem 0.65rem',
+                  border: isDone ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid var(--border-subtle)',
+                  boxShadow: '0 2px 5px rgba(0,0,0,0.03)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.4rem',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.4rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleTaskStatus(t)}
+                    title={isDone ? 'Mark In Progress' : 'Mark Done'}
+                    style={{
+                      width: '18px',
+                      height: '18px',
+                      minWidth: '18px',
+                      borderRadius: '5px',
+                      border: isDone ? '1px solid var(--accent-green)' : '1px solid var(--border-subtle)',
+                      background: isDone ? 'var(--accent-green)' : 'transparent',
+                      color: '#fff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      marginTop: '2px',
+                      padding: 0,
+                    }}
+                  >
+                    {isDone && <Check size={11} strokeWidth={3} />}
+                  </button>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: '0.78rem',
+                        fontWeight: 650,
+                        color: isDone ? 'var(--text-muted)' : 'var(--text-main)',
+                        textDecoration: isDone ? 'line-through' : 'none',
+                        lineHeight: 1.3,
+                        wordBreak: 'break-word',
+                      }}
+                    >
+                      {t.title}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.2rem', flexWrap: 'wrap' }}>
+                      <span
+                        style={{
+                          fontSize: '0.64rem',
+                          fontWeight: 700,
+                          color: t.deliverable_type === 'GRAPHIC' ? 'var(--accent-theme)' : 'var(--accent-purple, #8b5cf6)',
+                        }}
+                      >
+                        {t.deliverable_count && t.deliverable_count > 1 ? `${t.deliverable_count}x ` : ''}
+                        {t.deliverable_type === 'GRAPHIC' ? 'Graphic' : 'Reel'}
+                      </span>
+                      {t.assignee_name && (
+                        <span style={{ fontSize: '0.64rem', color: 'var(--text-dim)' }}>
+                          • {t.assignee_name.split(' ')[0]}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Stage Advancement Control */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    paddingTop: '0.3rem',
+                    borderTop: '1px dashed var(--border-subtle)',
+                  }}
+                >
+                  {stage === 'PRE_PRODUCTION' ? (
+                    <button
+                      type="button"
+                      onClick={() => handleAdvanceTaskStage(t.id, 'PRE_PRODUCTION')}
+                      style={{
+                        border: 'none',
+                        background: 'rgba(6, 182, 212, 0.12)',
+                        color: 'var(--accent-theme)',
+                        borderRadius: '6px',
+                        padding: '0.15rem 0.45rem',
+                        fontSize: '0.66rem',
+                        fontWeight: 750,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.2rem',
+                      }}
+                    >
+                      <span>➔ Production</span>
+                    </button>
+                  ) : stage === 'PRODUCTION' ? (
+                    <button
+                      type="button"
+                      onClick={() => handleAdvanceTaskStage(t.id, 'PRODUCTION')}
+                      style={{
+                        border: 'none',
+                        background: 'rgba(16, 185, 129, 0.12)',
+                        color: 'var(--accent-green)',
+                        borderRadius: '6px',
+                        padding: '0.15rem 0.45rem',
+                        fontSize: '0.66rem',
+                        fontWeight: 750,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.2rem',
+                      }}
+                    >
+                      <span>➔ Publish</span>
+                    </button>
+                  ) : (
+                    <span style={{ fontSize: '0.65rem', fontWeight: 700, color: isDone ? 'var(--accent-green)' : 'var(--text-dim)' }}>
+                      {isDone ? '✓ Counted in Quota' : 'Check off to count'}
+                    </span>
+                  )}
+
+                  {stage !== 'PRE_PRODUCTION' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const prevStage: DeliverableStage = stage === 'PUBLISHED' ? 'PRODUCTION' : 'PRE_PRODUCTION';
+                        handleUpdateTaskStageDirect(t.id, prevStage);
+                      }}
+                      title="Send back to previous stage"
+                      style={{
+                        border: 'none',
+                        background: 'transparent',
+                        color: 'var(--text-dim)',
+                        fontSize: '0.62rem',
+                        cursor: 'pointer',
+                        padding: '0.1rem',
+                      }}
+                    >
+                      ↩ Back
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+
+          {stageTasks.length === 0 && !isAdding && (
+            <div
+              style={{
+                padding: '0.85rem 0.5rem',
+                textAlign: 'center',
+                fontSize: '0.7rem',
+                color: 'var(--text-dim)',
+                fontStyle: 'italic',
+              }}
+            >
+              No items in {title.split(' ')[1].toLowerCase()}
+            </div>
+          )}
+        </div>
+
+        {/* Quick Add Form or Add Button */}
+        {isAdding ? (
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.35rem',
+              background: 'var(--bg-card)',
+              padding: '0.5rem',
+              borderRadius: '8px',
+              border: '1px solid var(--border-subtle)',
+            }}
+          >
+            <input
+              type="text"
+              autoFocus
+              placeholder={`Task title (${title.split(' ')[1]})...`}
+              value={quickAddTitle}
+              onChange={(e) => setQuickAddTitle(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  submitQuickAdd(client.client_name, stage);
+                } else if (e.key === 'Escape') {
+                  setQuickAddState(null);
+                }
+              }}
+              style={{
+                fontSize: '0.76rem',
+                fontWeight: 600,
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--text-main)',
+                outline: 'none',
+                padding: '0.2rem',
+              }}
+            />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.3rem' }}>
+              <select
+                value={quickAddType}
+                onChange={(e) => setQuickAddType(e.target.value as DeliverableType)}
+                style={{
+                  fontSize: '0.68rem',
+                  fontWeight: 700,
+                  background: 'var(--support-pill)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: '5px',
+                  color: 'var(--text-main)',
+                  padding: '0.15rem 0.35rem',
+                }}
+              >
+                <option value="REEL">🎬 Reel</option>
+                <option value="GRAPHIC">🎨 Graphic</option>
+              </select>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <button
+                  type="button"
+                  onClick={() => submitQuickAdd(client.client_name, stage)}
+                  style={{
+                    background: 'var(--accent-theme)',
+                    color: 'var(--accent-contrast)',
+                    border: 'none',
+                    borderRadius: '5px',
+                    fontSize: '0.66rem',
+                    fontWeight: 750,
+                    padding: '0.2rem 0.5rem',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Add
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuickAddState(null)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-dim)',
+                    cursor: 'pointer',
+                    padding: '0.1rem',
+                  }}
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => {
+              setQuickAddState({ clientId: client.id, stage });
+              setQuickAddTitle('');
+              setQuickAddType('REEL');
+            }}
+            style={{
+              border: '1px dashed var(--border-subtle)',
+              background: 'transparent',
+              borderRadius: '7px',
+              color: 'var(--text-dim)',
+              fontSize: '0.7rem',
+              fontWeight: 650,
+              padding: '0.35rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.25rem',
+              marginTop: 'auto',
+            }}
+          >
+            <Plus size={11} />
+            <span>Add Task</span>
+          </button>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -569,7 +1008,7 @@ export function ClientDeliverablesBoard({
           </div>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 330px), 1fr))', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 460px), 1fr))', gap: '1rem' }}>
           {clients.map((c) => {
             const reelsShort = Math.max(0, (c.target_reels || 0) - (c.completed_reels || 0));
             const graphicsShort = Math.max(0, (c.target_graphics || 0) - (c.completed_graphics || 0));
@@ -849,6 +1288,89 @@ export function ClientDeliverablesBoard({
                     </span>
                   </div>
                 )}
+
+                {/* 3 Workflow Columns Pipeline */}
+                {(() => {
+                  const clientTasks = tasks.filter(
+                    (t) => (t.client_name || '').trim().toLowerCase() === c.client_name.trim().toLowerCase()
+                  );
+                  const preProdTasks = clientTasks.filter((t) => t.deliverable_stage === 'PRE_PRODUCTION');
+                  const prodTasks = clientTasks.filter(
+                    (t) => t.deliverable_stage === 'PRODUCTION' || (!t.deliverable_stage && t.client_name)
+                  );
+                  const publishedTasks = clientTasks.filter((t) => t.deliverable_stage === 'PUBLISHED');
+                  const isCollapsed = Boolean(collapsedClients[c.id]);
+
+                  return (
+                    <div style={{ marginTop: '0.25rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          borderTop: '1px solid var(--border-subtle)',
+                          paddingTop: '0.75rem',
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: '0.78rem',
+                            fontWeight: 800,
+                            color: 'var(--text-main)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.35rem',
+                          }}
+                        >
+                          <Layers size={14} color="var(--accent-theme)" />
+                          <span>Workflow Pipeline</span>
+                          <span
+                            className="pill-badge"
+                            style={{
+                              fontSize: '0.68rem',
+                              padding: '0.05rem 0.4rem',
+                              fontWeight: 700,
+                            }}
+                          >
+                            {clientTasks.length} {clientTasks.length === 1 ? 'task' : 'tasks'}
+                          </span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => toggleCollapseClient(c.id)}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'var(--text-dim)',
+                            fontSize: '0.72rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.2rem',
+                          }}
+                        >
+                          <span>{isCollapsed ? 'Expand 3 Stages' : 'Collapse Stages'}</span>
+                          {isCollapsed ? <ChevronDown size={13} /> : <ChevronUp size={13} />}
+                        </button>
+                      </div>
+
+                      {!isCollapsed && (
+                        <div
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))',
+                            gap: '0.65rem',
+                          }}
+                        >
+                          {renderWorkflowColumn(c, 'PRE_PRODUCTION', '🎬 Pre-Production', 'Shoots & briefs', preProdTasks)}
+                          {renderWorkflowColumn(c, 'PRODUCTION', '✂️ Production', 'Editing & graphics', prodTasks)}
+                          {renderWorkflowColumn(c, 'PUBLISHED', '🚀 Published', 'Posted to socials', publishedTasks)}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             );
           })}

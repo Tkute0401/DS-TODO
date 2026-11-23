@@ -31,7 +31,7 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { title, due_date, is_urgent, assignee_id } = body;
+    const { title, due_date, is_urgent, assignee_id, client_id, client_name, deliverable_type, deliverable_stage, deliverable_count } = body;
 
     if (!title || typeof title !== 'string' || !title.trim()) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 });
@@ -49,6 +49,11 @@ export async function POST(req: Request) {
       is_urgent: Boolean(is_urgent),
       due_date: due_date || new Date().toISOString().split('T')[0],
       created_at: new Date().toISOString(),
+      client_id: client_id || undefined,
+      client_name: client_name || undefined,
+      deliverable_type: deliverable_type || (client_name ? 'REEL' : undefined),
+      deliverable_stage: deliverable_stage || (client_name ? 'PRODUCTION' : undefined),
+      deliverable_count: typeof deliverable_count === 'number' && deliverable_count > 0 ? deliverable_count : (client_name ? 1 : undefined),
     };
 
     const created = await db.createTask(newTask);
