@@ -15,8 +15,7 @@ import {
   Sparkles, 
   Trash2, 
   Edit3, 
-  X,
-  Copy
+  X
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { playSound } from '@/lib/sound';
@@ -218,63 +217,27 @@ export function ClientDeliverablesBoard({
   };
 
   // Delete client deliverable
-  const handleDeleteClient = async () => {
+  const handleDeleteClient = async (scope: 'month' | 'all') => {
     if (!clientToDelete) return;
     setIsSubmitting(true);
     try {
-      const res = await fetch(`/api/clients?id=${clientToDelete.id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/clients?id=${clientToDelete.id}&scope=${scope}`, { method: 'DELETE' });
       if (res.ok) {
-        setClients((prev) => prev.filter((c) => c.id !== clientToDelete.id));
+        playSound.pop(soundEnabled);
+        if (scope === 'all') {
+          const targetName = clientToDelete.client_name.trim().toLowerCase();
+          setClients((prev) => prev.filter((c) => c.client_name.trim().toLowerCase() !== targetName));
+        } else {
+          setClients((prev) => prev.filter((c) => c.id !== clientToDelete.id));
+        }
         setClientToDelete(null);
       } else {
-        showErrorToast('Failed to delete client deliverable.');
+        showErrorToast('Failed to remove client deliverable.');
       }
+    } catch {
+      showErrorToast('Network error removing client deliverable.');
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  // Copy quotas forward from previous month if current month is empty
-  const handleCopyFromPrevMonth = async () => {
-    const [year, month] = selectedMonth.split('-').map(Number);
-    const prevDate = new Date(year, month - 2, 1);
-    const prevMonthStr = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
-
-    setIsLoading(true);
-    try {
-      const res = await fetch(`/api/clients?month=${prevMonthStr}`);
-      const data = await res.json();
-      const prevClients: ClientDeliverable[] = data.clients || [];
-
-      if (prevClients.length === 0) {
-        showErrorToast(`No clients found in ${prevDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} to copy.`);
-        setIsLoading(false);
-        return;
-      }
-
-      // Re-create them for selected month with 0 completed
-      for (const c of prevClients) {
-        await fetch('/api/clients', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            client_name: c.client_name,
-            month: selectedMonth,
-            target_reels: c.target_reels,
-            completed_reels: 0,
-            target_graphics: c.target_graphics,
-            completed_graphics: 0,
-            notes: c.notes,
-          }),
-        });
-      }
-
-      playSound.pop(soundEnabled);
-      confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
-      await fetchMonthDeliverables(selectedMonth);
-    } catch {
-      showErrorToast('Failed to roll forward previous month retainers.');
-      setIsLoading(false);
     }
   };
 
@@ -583,7 +546,7 @@ export function ClientDeliverablesBoard({
             No Client Deliverables for {formattedMonthTitle}
           </h3>
           <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', margin: 0, maxWidth: '420px', lineHeight: 1.5 }}>
-            No retainer goals configured for this period yet. Add your agency clients or copy standard quotas forward from the previous month.
+            No agency client retainers exist for this month yet. Use the button below to add a new client deliverable goal.
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginTop: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
             <button
@@ -602,26 +565,6 @@ export function ClientDeliverablesBoard({
             >
               <Plus size={15} />
               <span>+ Add First Client</span>
-            </button>
-            <button
-              type="button"
-              onClick={handleCopyFromPrevMonth}
-              style={{
-                padding: '0.55rem 1rem',
-                borderRadius: '12px',
-                background: 'var(--support-pill)',
-                border: '1px solid var(--border-subtle)',
-                color: 'var(--text-main)',
-                fontWeight: 650,
-                fontSize: '0.84rem',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.35rem',
-                cursor: 'pointer',
-              }}
-            >
-              <Copy size={14} color="var(--accent-theme)" />
-              <span>Copy Quotas From Previous Month</span>
             </button>
           </div>
         </div>
@@ -1142,47 +1085,82 @@ export function ClientDeliverablesBoard({
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: 'var(--accent-red)' }}>
               <AlertTriangle size={20} />
               <h4 style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-main)', margin: 0 }}>
-                Remove Client Retainer?
+                Remove {clientToDelete.client_name}?
               </h4>
             </div>
 
             <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.45 }}>
-              Are you sure you want to remove <strong>{clientToDelete.client_name}</strong> for {formattedMonthTitle}?
+              Choose whether to exclude this client only from <strong>{formattedMonthTitle}</strong>, or delete them permanently across all months:
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+              <button
+                type="button"
+                onClick={() => handleDeleteClient('month')}
+                disabled={isSubmitting}
+                style={{
+                  padding: '0.65rem 0.85rem',
+                  borderRadius: '12px',
+                  background: 'rgba(245, 158, 11, 0.12)',
+                  border: '1px solid rgba(245, 158, 11, 0.35)',
+                  color: 'var(--accent-amber)',
+                  fontWeight: 750,
+                  fontSize: '0.82rem',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '2px',
+                }}
+              >
+                <span>🗓️ Remove for {formattedMonthTitle.split(' ')[0]} Only</span>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)', fontWeight: 500 }}>
+                  Client skips this month. Past history and future rollover remain intact.
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleDeleteClient('all')}
+                disabled={isSubmitting}
+                style={{
+                  padding: '0.65rem 0.85rem',
+                  borderRadius: '12px',
+                  background: 'rgba(255, 71, 87, 0.14)',
+                  border: '1px solid rgba(255, 71, 87, 0.35)',
+                  color: 'var(--accent-red)',
+                  fontWeight: 750,
+                  fontSize: '0.82rem',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '2px',
+                }}
+              >
+                <span>⚠️ Delete Permanently (All Months)</span>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-dim)', fontWeight: 500 }}>
+                  Permanently deletes client from all past, present, and future records.
+                </span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => setClientToDelete(null)}
+                disabled={isSubmitting}
                 style={{
-                  padding: '0.6rem',
+                  padding: '0.55rem',
                   borderRadius: '10px',
                   background: 'var(--support-pill)',
                   border: '1px solid var(--border-subtle)',
                   color: 'var(--text-muted)',
                   fontWeight: 650,
-                  fontSize: '0.84rem',
+                  fontSize: '0.82rem',
                   cursor: 'pointer',
+                  marginTop: '0.2rem',
                 }}
               >
                 Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleDeleteClient}
-                disabled={isSubmitting}
-                style={{
-                  padding: '0.6rem',
-                  borderRadius: '10px',
-                  background: 'var(--accent-red)',
-                  border: 'none',
-                  color: '#ffffff',
-                  fontWeight: 750,
-                  fontSize: '0.84rem',
-                  cursor: 'pointer',
-                }}
-              >
-                {isSubmitting ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>

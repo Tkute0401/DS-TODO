@@ -103,6 +103,7 @@ export interface ClientDeliverable {
   target_graphics: number;
   completed_graphics: number;
   notes?: string;
+  is_active?: boolean;
   created_at: string;
   updated_at?: string;
 }

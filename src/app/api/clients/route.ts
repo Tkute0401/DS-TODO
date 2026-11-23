@@ -59,6 +59,7 @@ export async function POST(req: Request) {
       target_graphics: Number(target_graphics) || 0,
       completed_graphics: Number(completed_graphics) || 0,
       notes: notes ? String(notes).trim() : undefined,
+      is_active: true,
       created_at: new Date().toISOString(),
     };
 
@@ -107,6 +108,7 @@ export async function PATCH(req: Request) {
     if (completed_reels !== undefined && field !== 'reels') updated.completed_reels = Math.max(0, Number(completed_reels));
     if (completed_graphics !== undefined && field !== 'graphics') updated.completed_graphics = Math.max(0, Number(completed_graphics));
     if (notes !== undefined) updated.notes = String(notes);
+    if (body.is_active !== undefined) updated.is_active = Boolean(body.is_active);
 
     const saved = await db.upsertClientDeliverable(updated);
     return NextResponse.json({ client: saved });
@@ -128,14 +130,15 @@ export async function DELETE(req: Request) {
 
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
+  const scope = (searchParams.get('scope') === 'all' ? 'all' : 'month') as 'month' | 'all';
 
   if (!id) {
     return NextResponse.json({ error: 'ID is required' }, { status: 400 });
   }
 
   try {
-    await db.deleteClientDeliverable(id);
-    return NextResponse.json({ success: true });
+    await db.deleteClientDeliverable(id, scope);
+    return NextResponse.json({ success: true, scope });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Server error';
     return NextResponse.json({ error: message }, { status: 500 });

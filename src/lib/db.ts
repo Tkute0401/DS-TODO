@@ -187,30 +187,90 @@ class InMemoryDB {
   }
 
   async getClientDeliverables(month?: string): Promise<ClientDeliverable[]> {
-    if (month) {
-      return this.clientDeliverables.filter((c) => c.month === month);
+    if (!month) {
+      return this.clientDeliverables.filter((c) => c.is_active !== false);
     }
-    return this.clientDeliverables;
+
+    // Auto-rollover: Find all historical clients whose earliest record month <= requested month
+    const clientMap = new Map<string, ClientDeliverable[]>();
+    for (const c of this.clientDeliverables) {
+      const key = c.client_name.trim().toLowerCase();
+      if (!clientMap.has(key)) clientMap.set(key, []);
+      clientMap.get(key)!.push(c);
+    }
+
+    for (const [, records] of clientMap.entries()) {
+      const earliestMonth = records.reduce((min, r) => (r.month < min ? r.month : min), records[0].month);
+      if (earliestMonth <= month) {
+        const hasCurrentMonthEntry = records.some((r) => r.month === month);
+        if (!hasCurrentMonthEntry) {
+          const priorRecords = records
+            .filter((r) => r.month < month)
+            .sort((a, b) => b.month.localeCompare(a.month));
+          const latestPrior = priorRecords[0];
+
+          if (latestPrior && latestPrior.is_active !== false) {
+            const seeded: ClientDeliverable = {
+              id: `cd-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+              client_name: latestPrior.client_name,
+              month,
+              target_reels: latestPrior.target_reels || 0,
+              completed_reels: 0,
+              target_graphics: latestPrior.target_graphics || 0,
+              completed_graphics: 0,
+              notes: latestPrior.notes,
+              is_active: true,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            };
+            this.clientDeliverables.push(seeded);
+          }
+        }
+      }
+    }
+
+    return this.clientDeliverables
+      .filter((c) => c.month === month && c.is_active !== false)
+      .sort((a, b) => a.client_name.localeCompare(b.client_name));
   }
 
   async upsertClientDeliverable(data: ClientDeliverable): Promise<ClientDeliverable> {
     const idx = this.clientDeliverables.findIndex((c) => c.id === data.id);
     if (idx !== -1) {
-      this.clientDeliverables[idx] = { ...this.clientDeliverables[idx], ...data, updated_at: new Date().toISOString() };
+      this.clientDeliverables[idx] = { 
+        ...this.clientDeliverables[idx], 
+        ...data, 
+        is_active: data.is_active !== undefined ? data.is_active : this.clientDeliverables[idx].is_active !== false,
+        updated_at: new Date().toISOString() 
+      };
       return this.clientDeliverables[idx];
     }
-    const item = { ...data, created_at: data.created_at || new Date().toISOString(), updated_at: new Date().toISOString() };
+    const item = { 
+      ...data, 
+      is_active: data.is_active !== undefined ? data.is_active : true,
+      created_at: data.created_at || new Date().toISOString(), 
+      updated_at: new Date().toISOString() 
+    };
     this.clientDeliverables.push(item);
     return item;
   }
 
-  async deleteClientDeliverable(id: string): Promise<boolean> {
+  async deleteClientDeliverable(id: string, scope: 'month' | 'all' = 'month'): Promise<boolean> {
     const idx = this.clientDeliverables.findIndex((c) => c.id === id);
-    if (idx !== -1) {
-      this.clientDeliverables.splice(idx, 1);
+    if (idx === -1) return false;
+    const target = this.clientDeliverables[idx];
+
+    if (scope === 'all') {
+      const targetName = target.client_name.trim().toLowerCase();
+      this.clientDeliverables = this.clientDeliverables.filter(
+        (c) => c.client_name.trim().toLowerCase() !== targetName
+      );
+      return true;
+    } else {
+      // Mark as inactive for this month to prevent auto-resurrection
+      this.clientDeliverables[idx] = { ...target, is_active: false, updated_at: new Date().toISOString() };
       return true;
     }
-    return false;
   }
 }
 
@@ -284,6 +344,8 @@ class NeonDB {
           updated_at TIMESTAMPTZ DEFAULT NOW()
         );
       `;
+
+      await this.sql`ALTER TABLE client_deliverables ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;`;
 
       await this.sql`
         CREATE TABLE IF NOT EXISTS blockers (
@@ -602,16 +664,77 @@ class NeonDB {
 
   async getClientDeliverables(month?: string): Promise<ClientDeliverable[]> {
     await this.ensureSchema();
-    if (month) {
+    if (!month) {
       return (await this.sql`
         SELECT * FROM client_deliverables 
-        WHERE month = ${month} 
-        ORDER BY client_name ASC;
+        WHERE (is_active IS NULL OR is_active = true)
+        ORDER BY month DESC, client_name ASC;
       `) as unknown as ClientDeliverable[];
     }
+
+    // 1. Fetch all records across all months to compute rollover
+    const allRecords = (await this.sql`
+      SELECT * FROM client_deliverables ORDER BY month ASC;
+    `) as unknown as ClientDeliverable[];
+
+    // 2. Discover client earliest months and missing entries for requested month
+    const clientMap = new Map<string, ClientDeliverable[]>();
+    for (const r of allRecords) {
+      const key = r.client_name.trim().toLowerCase();
+      if (!clientMap.has(key)) clientMap.set(key, []);
+      clientMap.get(key)!.push(r);
+    }
+
+    const toInsert: ClientDeliverable[] = [];
+
+    for (const [, records] of clientMap.entries()) {
+      const earliestMonth = records.reduce((min, r) => (r.month < min ? r.month : min), records[0].month);
+      if (earliestMonth <= month) {
+        const hasMonthEntry = records.some((r) => r.month === month);
+        if (!hasMonthEntry) {
+          const priorRecords = records
+            .filter((r) => r.month < month)
+            .sort((a, b) => b.month.localeCompare(a.month));
+          const latestPrior = priorRecords[0];
+
+          if (latestPrior && latestPrior.is_active !== false) {
+            toInsert.push({
+              id: `cd-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+              client_name: latestPrior.client_name,
+              month,
+              target_reels: latestPrior.target_reels || 0,
+              completed_reels: 0,
+              target_graphics: latestPrior.target_graphics || 0,
+              completed_graphics: 0,
+              notes: latestPrior.notes,
+              is_active: true,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            });
+          }
+        }
+      }
+    }
+
+    // Batch insert any auto-seeded records
+    if (toInsert.length > 0) {
+      for (const item of toInsert) {
+        await this.sql`
+          INSERT INTO client_deliverables (
+            id, client_name, month, target_reels, completed_reels, target_graphics, completed_graphics, notes, is_active, updated_at
+          ) VALUES (
+            ${item.id}, ${item.client_name}, ${item.month}, ${item.target_reels || 0}, 0,
+            ${item.target_graphics || 0}, 0, ${item.notes || null}, true, NOW()
+          )
+          ON CONFLICT (id) DO NOTHING;
+        `;
+      }
+    }
+
     return (await this.sql`
       SELECT * FROM client_deliverables 
-      ORDER BY month DESC, client_name ASC;
+      WHERE month = ${month} AND (is_active IS NULL OR is_active = true)
+      ORDER BY client_name ASC;
     `) as unknown as ClientDeliverable[];
   }
 
@@ -619,10 +742,10 @@ class NeonDB {
     await this.ensureSchema();
     await this.sql`
       INSERT INTO client_deliverables (
-        id, client_name, month, target_reels, completed_reels, target_graphics, completed_graphics, notes, updated_at
+        id, client_name, month, target_reels, completed_reels, target_graphics, completed_graphics, notes, is_active, updated_at
       ) VALUES (
         ${data.id}, ${data.client_name}, ${data.month}, ${data.target_reels || 0}, ${data.completed_reels || 0}, 
-        ${data.target_graphics || 0}, ${data.completed_graphics || 0}, ${data.notes || null}, NOW()
+        ${data.target_graphics || 0}, ${data.completed_graphics || 0}, ${data.notes || null}, ${data.is_active !== undefined ? data.is_active : true}, NOW()
       )
       ON CONFLICT (id) DO UPDATE SET
         client_name = EXCLUDED.client_name,
@@ -632,16 +755,28 @@ class NeonDB {
         target_graphics = EXCLUDED.target_graphics,
         completed_graphics = EXCLUDED.completed_graphics,
         notes = EXCLUDED.notes,
+        is_active = EXCLUDED.is_active,
         updated_at = NOW();
     `;
     const rows = (await this.sql`SELECT * FROM client_deliverables WHERE id = ${data.id} LIMIT 1;`) as unknown as ClientDeliverable[];
     return rows[0];
   }
 
-  async deleteClientDeliverable(id: string): Promise<boolean> {
+  async deleteClientDeliverable(id: string, scope: 'month' | 'all' = 'month'): Promise<boolean> {
     await this.ensureSchema();
-    await this.sql`DELETE FROM client_deliverables WHERE id = ${id};`;
-    return true;
+    if (scope === 'all') {
+      const rows = (await this.sql`SELECT client_name FROM client_deliverables WHERE id = ${id} LIMIT 1;`) as unknown as { client_name: string }[];
+      if (rows[0]?.client_name) {
+        await this.sql`DELETE FROM client_deliverables WHERE LOWER(TRIM(client_name)) = LOWER(TRIM(${rows[0].client_name}));`;
+        return true;
+      }
+      await this.sql`DELETE FROM client_deliverables WHERE id = ${id};`;
+      return true;
+    } else {
+      // Month-specific removal: mark inactive for this month to prevent re-seeding
+      await this.sql`UPDATE client_deliverables SET is_active = false, updated_at = NOW() WHERE id = ${id};`;
+      return true;
+    }
   }
 }
 
