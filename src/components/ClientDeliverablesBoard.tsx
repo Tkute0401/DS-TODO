@@ -69,15 +69,19 @@ export function ClientDeliverablesBoard({
   const [targetGraphicsInput, setTargetGraphicsInput] = useState<number>(0);
   const [notesInput, setNotesInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const hasLoadedRef = React.useRef(false);
 
   // Fetch client deliverables for selected month
-  const fetchMonthDeliverables = useCallback(async (monthStr: string) => {
-    setIsLoading(true);
+  const fetchMonthDeliverables = useCallback(async (monthStr: string, isSilent = false) => {
+    if (!isSilent && !hasLoadedRef.current) {
+      setIsLoading(true);
+    }
     try {
       const res = await fetch(`/api/clients?month=${monthStr}`);
       const data = await res.json();
       if (data.clients) {
         setClients(data.clients);
+        hasLoadedRef.current = true;
       }
     } catch {
       showErrorToast('Failed to load client deliverables.');
@@ -961,7 +965,7 @@ export function ClientDeliverablesBoard({
       </div>
 
       {/* 3. Clients Grid */}
-      {isLoading ? (
+      {isLoading && clients.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '3.5rem', color: 'var(--text-dim)' }}>
           Loading client deliverables for {formattedMonthTitle}...
         </div>
@@ -1105,161 +1109,170 @@ export function ClientDeliverablesBoard({
                   </div>
                 </div>
 
-                {/* 1. Reels Tracker Box */}
+                {/* Deliverables Quota: 1 Single Row with 2 Columns */}
                 <div
                   style={{
-                    padding: '0.85rem',
-                    borderRadius: '14px',
-                    background: 'var(--support-pill)',
-                    border: '1px solid var(--border-subtle)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.5rem',
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))',
+                    gap: '0.75rem',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '0.76rem', fontWeight: 750, color: 'var(--text-main)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                      <Film size={14} color="var(--accent-purple, #8b5cf6)" />
-                      <span>Reels</span>
-                    </span>
-                    <span className="tabular-numbers" style={{ fontSize: '0.8rem', fontWeight: 750, color: c.completed_reels >= c.target_reels && c.target_reels > 0 ? 'var(--accent-green)' : 'var(--text-main)' }}>
-                      {c.completed_reels} / {c.target_reels}
-                    </span>
+                  {/* 1. Reels Tracker Box */}
+                  <div
+                    style={{
+                      padding: '0.85rem',
+                      borderRadius: '14px',
+                      background: 'var(--support-pill)',
+                      border: '1px solid var(--border-subtle)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.5rem',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '0.76rem', fontWeight: 750, color: 'var(--text-main)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <Film size={14} color="var(--accent-purple, #8b5cf6)" />
+                        <span>Reels</span>
+                      </span>
+                      <span className="tabular-numbers" style={{ fontSize: '0.8rem', fontWeight: 750, color: c.completed_reels >= c.target_reels && c.target_reels > 0 ? 'var(--accent-green)' : 'var(--text-main)' }}>
+                        {c.completed_reels} / {c.target_reels}
+                      </span>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div style={{ width: '100%', height: '6px', borderRadius: '999px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                      <div
+                        style={{
+                          width: `${reelsRate}%`,
+                          height: '100%',
+                          borderRadius: '999px',
+                          background: c.completed_reels >= c.target_reels && c.target_reels > 0 ? 'var(--accent-green)' : 'var(--accent-purple, #8b5cf6)',
+                          transition: 'width 0.3s ease',
+                        }}
+                      />
+                    </div>
+
+                    {/* Stepper Buttons */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.35rem', marginTop: '0.1rem' }}>
+                      <button
+                        type="button"
+                        disabled={c.completed_reels <= 0}
+                        onClick={() => handleQuickDelta(c, 'reels', -1)}
+                        style={{
+                          width: '28px',
+                          height: '28px',
+                          borderRadius: '7px',
+                          border: '1px solid var(--border-subtle)',
+                          background: 'var(--bg-card)',
+                          color: 'var(--text-main)',
+                          fontWeight: 700,
+                          fontSize: '0.85rem',
+                          cursor: c.completed_reels <= 0 ? 'not-allowed' : 'pointer',
+                          opacity: c.completed_reels <= 0 ? 0.4 : 1,
+                        }}
+                      >
+                        -
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleQuickDelta(c, 'reels', 1)}
+                        style={{
+                          padding: '0 0.65rem',
+                          height: '28px',
+                          borderRadius: '7px',
+                          border: 'none',
+                          background: 'rgba(139, 92, 246, 0.18)',
+                          color: 'var(--accent-purple, #8b5cf6)',
+                          fontWeight: 750,
+                          fontSize: '0.78rem',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.25rem',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <span>+1 Delivered</span>
+                      </button>
+                    </div>
                   </div>
 
-                  {/* Progress Bar */}
-                  <div style={{ width: '100%', height: '6px', borderRadius: '999px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
-                    <div
-                      style={{
-                        width: `${reelsRate}%`,
-                        height: '100%',
-                        borderRadius: '999px',
-                        background: c.completed_reels >= c.target_reels && c.target_reels > 0 ? 'var(--accent-green)' : 'var(--accent-purple, #8b5cf6)',
-                        transition: 'width 0.3s ease',
-                      }}
-                    />
-                  </div>
+                  {/* 2. Graphic Posts Tracker Box */}
+                  <div
+                    style={{
+                      padding: '0.85rem',
+                      borderRadius: '14px',
+                      background: 'var(--support-pill)',
+                      border: '1px solid var(--border-subtle)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.5rem',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '0.76rem', fontWeight: 750, color: 'var(--text-main)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <ImageIcon size={14} color="var(--accent-theme)" />
+                        <span>Graphic Posts</span>
+                      </span>
+                      <span className="tabular-numbers" style={{ fontSize: '0.8rem', fontWeight: 750, color: c.completed_graphics >= c.target_graphics && c.target_graphics > 0 ? 'var(--accent-green)' : 'var(--text-main)' }}>
+                        {c.completed_graphics} / {c.target_graphics}
+                      </span>
+                    </div>
 
-                  {/* Stepper Buttons */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.35rem', marginTop: '0.1rem' }}>
-                    <button
-                      type="button"
-                      disabled={c.completed_reels <= 0}
-                      onClick={() => handleQuickDelta(c, 'reels', -1)}
-                      style={{
-                        width: '28px',
-                        height: '28px',
-                        borderRadius: '7px',
-                        border: '1px solid var(--border-subtle)',
-                        background: 'var(--bg-card)',
-                        color: 'var(--text-main)',
-                        fontWeight: 700,
-                        fontSize: '0.85rem',
-                        cursor: c.completed_reels <= 0 ? 'not-allowed' : 'pointer',
-                        opacity: c.completed_reels <= 0 ? 0.4 : 1,
-                      }}
-                    >
-                      -
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleQuickDelta(c, 'reels', 1)}
-                      style={{
-                        padding: '0 0.65rem',
-                        height: '28px',
-                        borderRadius: '7px',
-                        border: 'none',
-                        background: 'rgba(139, 92, 246, 0.18)',
-                        color: 'var(--accent-purple, #8b5cf6)',
-                        fontWeight: 750,
-                        fontSize: '0.78rem',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '0.25rem',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <span>+1 Delivered</span>
-                    </button>
-                  </div>
-                </div>
+                    {/* Progress Bar */}
+                    <div style={{ width: '100%', height: '6px', borderRadius: '999px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                      <div
+                        style={{
+                          width: `${graphicsRate}%`,
+                          height: '100%',
+                          borderRadius: '999px',
+                          background: c.completed_graphics >= c.target_graphics && c.target_graphics > 0 ? 'var(--accent-green)' : 'var(--accent-theme)',
+                          transition: 'width 0.3s ease',
+                        }}
+                      />
+                    </div>
 
-                {/* 2. Graphic Posts Tracker Box */}
-                <div
-                  style={{
-                    padding: '0.85rem',
-                    borderRadius: '14px',
-                    background: 'var(--support-pill)',
-                    border: '1px solid var(--border-subtle)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.5rem',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '0.76rem', fontWeight: 750, color: 'var(--text-main)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                      <ImageIcon size={14} color="var(--accent-theme)" />
-                      <span>Graphic Posts</span>
-                    </span>
-                    <span className="tabular-numbers" style={{ fontSize: '0.8rem', fontWeight: 750, color: c.completed_graphics >= c.target_graphics && c.target_graphics > 0 ? 'var(--accent-green)' : 'var(--text-main)' }}>
-                      {c.completed_graphics} / {c.target_graphics}
-                    </span>
-                  </div>
-
-                  {/* Progress Bar */}
-                  <div style={{ width: '100%', height: '6px', borderRadius: '999px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
-                    <div
-                      style={{
-                        width: `${graphicsRate}%`,
-                        height: '100%',
-                        borderRadius: '999px',
-                        background: c.completed_graphics >= c.target_graphics && c.target_graphics > 0 ? 'var(--accent-green)' : 'var(--accent-theme)',
-                        transition: 'width 0.3s ease',
-                      }}
-                    />
-                  </div>
-
-                  {/* Stepper Buttons */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.35rem', marginTop: '0.1rem' }}>
-                    <button
-                      type="button"
-                      disabled={c.completed_graphics <= 0}
-                      onClick={() => handleQuickDelta(c, 'graphics', -1)}
-                      style={{
-                        width: '28px',
-                        height: '28px',
-                        borderRadius: '7px',
-                        border: '1px solid var(--border-subtle)',
-                        background: 'var(--bg-card)',
-                        color: 'var(--text-main)',
-                        fontWeight: 700,
-                        fontSize: '0.85rem',
-                        cursor: c.completed_graphics <= 0 ? 'not-allowed' : 'pointer',
-                        opacity: c.completed_graphics <= 0 ? 0.4 : 1,
-                      }}
-                    >
-                      -
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleQuickDelta(c, 'graphics', 1)}
-                      style={{
-                        padding: '0 0.65rem',
-                        height: '28px',
-                        borderRadius: '7px',
-                        border: 'none',
-                        background: 'rgba(6, 182, 212, 0.18)',
-                        color: 'var(--accent-theme)',
-                        fontWeight: 750,
-                        fontSize: '0.78rem',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '0.25rem',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <span>+1 Delivered</span>
-                    </button>
+                    {/* Stepper Buttons */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.35rem', marginTop: '0.1rem' }}>
+                      <button
+                        type="button"
+                        disabled={c.completed_graphics <= 0}
+                        onClick={() => handleQuickDelta(c, 'graphics', -1)}
+                        style={{
+                          width: '28px',
+                          height: '28px',
+                          borderRadius: '7px',
+                          border: '1px solid var(--border-subtle)',
+                          background: 'var(--bg-card)',
+                          color: 'var(--text-main)',
+                          fontWeight: 700,
+                          fontSize: '0.85rem',
+                          cursor: c.completed_graphics <= 0 ? 'not-allowed' : 'pointer',
+                          opacity: c.completed_graphics <= 0 ? 0.4 : 1,
+                        }}
+                      >
+                        -
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleQuickDelta(c, 'graphics', 1)}
+                        style={{
+                          padding: '0 0.65rem',
+                          height: '28px',
+                          borderRadius: '7px',
+                          border: 'none',
+                          background: 'rgba(6, 182, 212, 0.18)',
+                          color: 'var(--accent-theme)',
+                          fontWeight: 750,
+                          fontSize: '0.78rem',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.25rem',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <span>+1 Delivered</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
 

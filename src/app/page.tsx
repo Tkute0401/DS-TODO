@@ -46,10 +46,10 @@ export default function App() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [toastError, setToastError] = useState<string | null>(null);
 
-  const showErrorToast = (msg: string) => {
+  const showErrorToast = useCallback((msg: string) => {
     setToastError(msg);
     setTimeout(() => setToastError(null), 4500);
-  };
+  }, []);
 
   // Load user session
   const fetchSession = async () => {
