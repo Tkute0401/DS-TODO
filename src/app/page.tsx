@@ -1202,6 +1202,7 @@ export default function App() {
         {viewMode === 'clients' && (
           <ClientDeliverablesBoard
             currentUser={currentUser}
+            allUsers={activeUsers}
             soundEnabled={currentUser.sound_enabled}
             showErrorToast={showErrorToast}
             tasks={tasks}

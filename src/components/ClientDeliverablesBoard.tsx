@@ -27,6 +27,7 @@ import { playSound } from '@/lib/sound';
 
 interface ClientDeliverablesBoardProps {
   currentUser: User;
+  allUsers?: User[];
   soundEnabled: boolean;
   showErrorToast: (msg: string) => void;
   tasks?: Task[];
@@ -35,6 +36,7 @@ interface ClientDeliverablesBoardProps {
 
 export function ClientDeliverablesBoard({
   currentUser,
+  allUsers = [],
   soundEnabled,
   showErrorToast,
   tasks = [],
@@ -57,6 +59,7 @@ export function ClientDeliverablesBoard({
   const [quickAddState, setQuickAddState] = useState<{ clientId: string; stage: DeliverableStage } | null>(null);
   const [quickAddTitle, setQuickAddTitle] = useState('');
   const [quickAddType, setQuickAddType] = useState<DeliverableType>('REEL');
+  const [quickAddAssigneeId, setQuickAddAssigneeId] = useState<string>(currentUser.id);
   const [collapsedClients, setCollapsedClients] = useState<Record<string, boolean>>({});
 
   const toggleCollapseClient = (clientId: string) => {
@@ -332,6 +335,7 @@ export function ClientDeliverablesBoard({
           deliverable_stage: stage,
           deliverable_type: quickAddType,
           deliverable_count: 1,
+          assignee_id: quickAddAssigneeId || currentUser.id,
         }),
       });
       if (!res.ok) throw new Error();
@@ -602,23 +606,51 @@ export function ClientDeliverablesBoard({
                 padding: '0.2rem',
               }}
             />
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.3rem' }}>
-              <select
-                value={quickAddType}
-                onChange={(e) => setQuickAddType(e.target.value as DeliverableType)}
-                style={{
-                  fontSize: '0.68rem',
-                  fontWeight: 700,
-                  background: 'var(--support-pill)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: '5px',
-                  color: 'var(--text-main)',
-                  padding: '0.15rem 0.35rem',
-                }}
-              >
-                <option value="REEL">🎬 Reel</option>
-                <option value="GRAPHIC">🎨 Graphic</option>
-              </select>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.35rem', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'wrap', flex: 1 }}>
+                <select
+                  value={quickAddType}
+                  onChange={(e) => setQuickAddType(e.target.value as DeliverableType)}
+                  style={{
+                    fontSize: '0.68rem',
+                    fontWeight: 700,
+                    background: 'var(--support-pill)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: '5px',
+                    color: 'var(--text-main)',
+                    padding: '0.15rem 0.35rem',
+                    outline: 'none',
+                  }}
+                >
+                  <option value="REEL">🎬 Reel</option>
+                  <option value="GRAPHIC">🎨 Graphic</option>
+                </select>
+
+                {allUsers.length > 0 && (
+                  <select
+                    value={quickAddAssigneeId}
+                    onChange={(e) => setQuickAddAssigneeId(e.target.value)}
+                    title="Assign to team member"
+                    style={{
+                      fontSize: '0.68rem',
+                      fontWeight: 650,
+                      background: 'var(--support-pill)',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: '5px',
+                      color: 'var(--text-main)',
+                      padding: '0.15rem 0.35rem',
+                      maxWidth: '120px',
+                      outline: 'none',
+                    }}
+                  >
+                    {allUsers.filter((u) => u.is_active !== false).map((u) => (
+                      <option key={u.id} value={u.id} style={{ background: 'var(--bg-card)', color: 'var(--text-main)' }}>
+                        {u.id === currentUser.id ? '👤 Assign: Me' : `👤 ${u.name.split(' ')[0]}`}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                 <button
                   type="button"
@@ -659,6 +691,7 @@ export function ClientDeliverablesBoard({
               setQuickAddState({ clientId: client.id, stage });
               setQuickAddTitle('');
               setQuickAddType('REEL');
+              setQuickAddAssigneeId(currentUser.id);
             }}
             style={{
               border: '1px dashed var(--border-subtle)',
