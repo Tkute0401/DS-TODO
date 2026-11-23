@@ -19,7 +19,7 @@ export function BlockerAlertBanner({
   if (blockersOnMe.length === 0) return null;
 
   return (
-    <div style={{ maxWidth: '1080px', margin: '1rem auto 0 auto', padding: '0 1.25rem', width: '100%', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+    <div style={{ maxWidth: '1560px', margin: '0.75rem auto 0 auto', padding: '0 0.75rem', width: '100%', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
       {blockersOnMe.map((b) => (
         <div
           key={b.id}
