@@ -1185,7 +1185,7 @@ export function ClientDeliverablesBoard({
           </div>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 500px), 1fr))', gap: '1.15rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', width: '100%' }}>
           {clients.map((c) => {
             const reelsShort = Math.max(0, (c.target_reels || 0) - (c.completed_reels || 0));
             const graphicsShort = Math.max(0, (c.target_graphics || 0) - (c.completed_graphics || 0));
@@ -1318,9 +1318,10 @@ export function ClientDeliverablesBoard({
 
                 {/* Deliverables Quota: 1 Single Row with 2 Columns */}
                 <div
+                  className="client-quota-grid"
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 230px), 1fr))',
+                    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
                     gap: '0.85rem',
                   }}
                 >
@@ -1613,10 +1614,11 @@ export function ClientDeliverablesBoard({
 
                       {!isCollapsed && (
                         <div
+                          className="client-pipeline-grid"
                           style={{
                             display: 'grid',
-                            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))',
-                            gap: '0.65rem',
+                            gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                            gap: '0.75rem',
                           }}
                         >
                           {renderWorkflowColumn(c, 'PRE_PRODUCTION', '🎬 Pre-Production', 'Shoots & briefs', preProdTasks)}
