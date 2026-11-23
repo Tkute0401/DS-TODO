@@ -66,6 +66,28 @@ export function ClientDeliverablesBoard({
     setCollapsedClients((prev) => ({ ...prev, [clientId]: !prev[clientId] }));
   };
 
+  // Helper for client avatar monogram and dynamic theme
+  const getClientInitials = (name: string) => {
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return (name.trim().slice(0, 2) || 'CL').toUpperCase();
+  };
+
+  const getClientAvatarTheme = (name: string) => {
+    const themes = [
+      { bg: 'linear-gradient(135deg, rgba(6, 182, 212, 0.22), rgba(59, 130, 246, 0.22))', border: 'rgba(6, 182, 212, 0.4)', color: 'var(--accent-theme)' },
+      { bg: 'linear-gradient(135deg, rgba(168, 85, 247, 0.22), rgba(236, 72, 153, 0.22))', border: 'rgba(168, 85, 247, 0.4)', color: 'var(--accent-purple, #8b5cf6)' },
+      { bg: 'linear-gradient(135deg, rgba(16, 185, 129, 0.22), rgba(20, 184, 166, 0.22))', border: 'rgba(16, 185, 129, 0.4)', color: 'var(--accent-green)' },
+      { bg: 'linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(239, 68, 68, 0.22))', border: 'rgba(245, 158, 11, 0.4)', color: 'var(--accent-amber)' },
+      { bg: 'linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(139, 92, 246, 0.22))', border: 'rgba(99, 102, 241, 0.4)', color: '#818cf8' },
+    ];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return themes[Math.abs(hash) % themes.length];
+  };
+
   // Form states
   const [nameInput, setNameInput] = useState('');
   const [targetReelsInput, setTargetReelsInput] = useState<number>(0);
@@ -363,35 +385,52 @@ export function ClientDeliverablesBoard({
         ? 'var(--accent-theme)'
         : 'var(--accent-green)';
 
+    const stageBgTint =
+      stage === 'PRE_PRODUCTION'
+        ? 'rgba(139, 92, 246, 0.04)'
+        : stage === 'PRODUCTION'
+        ? 'rgba(6, 182, 212, 0.04)'
+        : 'rgba(16, 185, 129, 0.04)';
+
+    const stageBorderColor =
+      stage === 'PRE_PRODUCTION'
+        ? 'rgba(139, 92, 246, 0.25)'
+        : stage === 'PRODUCTION'
+        ? 'rgba(6, 182, 212, 0.25)'
+        : 'rgba(16, 185, 129, 0.25)';
+
     return (
       <div
         key={stage}
         style={{
           background: 'var(--support-pill)',
-          borderRadius: '14px',
+          borderRadius: '16px',
           border: '1px solid var(--border-subtle)',
-          padding: '0.65rem',
+          borderTop: `2.5px solid ${stageColor}`,
+          padding: '0.75rem',
           display: 'flex',
           flexDirection: 'column',
-          gap: '0.5rem',
+          gap: '0.65rem',
           minWidth: 0,
+          boxShadow: 'inset 1px 1px 2px var(--clay-highlight)',
         }}
       >
         {/* Column Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.3rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.35rem' }}>
           <div>
-            <div style={{ fontSize: '0.76rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
               <span>{title}</span>
             </div>
-            <div style={{ fontSize: '0.64rem', color: 'var(--text-dim)' }}>{subtitle}</div>
+            <div style={{ fontSize: '0.65rem', color: 'var(--text-dim)', marginTop: '1px' }}>{subtitle}</div>
           </div>
           <span
             className="pill-badge tabular-numbers"
             style={{
-              fontSize: '0.65rem',
-              padding: '0.05rem 0.35rem',
+              fontSize: '0.68rem',
+              padding: '0.1rem 0.45rem',
               fontWeight: 800,
-              background: 'var(--bg-card)',
+              background: stageTasks.length > 0 ? stageBgTint : 'var(--bg-card)',
+              border: `1px solid ${stageTasks.length > 0 ? stageBorderColor : 'var(--border-subtle)'}`,
               color: stageTasks.length > 0 ? stageColor : 'var(--text-dim)',
             }}
           >
@@ -400,7 +439,7 @@ export function ClientDeliverablesBoard({
         </div>
 
         {/* Task Cards in this Stage */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', flex: 1 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
           {stageTasks.map((t) => {
             const isDone = t.status === 'DONE';
             return (
@@ -408,65 +447,81 @@ export function ClientDeliverablesBoard({
                 key={t.id}
                 style={{
                   background: 'var(--bg-card)',
-                  borderRadius: '10px',
-                  padding: '0.55rem 0.65rem',
-                  border: isDone ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid var(--border-subtle)',
-                  boxShadow: '0 2px 5px rgba(0,0,0,0.03)',
+                  borderRadius: '12px',
+                  padding: '0.65rem 0.75rem',
+                  border: isDone ? '1px solid rgba(16, 185, 129, 0.45)' : '1px solid var(--border-subtle)',
+                  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.05)',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '0.4rem',
+                  gap: '0.45rem',
+                  transition: 'border-color 0.2s ease, transform 0.15s ease',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.4rem' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
                   <button
                     type="button"
                     onClick={() => handleToggleTaskStatus(t)}
-                    title={isDone ? 'Mark In Progress' : 'Mark Done'}
+                    title={isDone ? 'Mark In Progress' : 'Mark Done (Counts in Quota)'}
                     style={{
-                      width: '18px',
-                      height: '18px',
-                      minWidth: '18px',
-                      borderRadius: '5px',
-                      border: isDone ? '1px solid var(--accent-green)' : '1px solid var(--border-subtle)',
+                      width: '20px',
+                      height: '20px',
+                      minWidth: '20px',
+                      borderRadius: '6px',
+                      border: isDone ? '1.5px solid var(--accent-green)' : '1.5px solid var(--border-subtle)',
                       background: isDone ? 'var(--accent-green)' : 'transparent',
                       color: '#fff',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       cursor: 'pointer',
-                      marginTop: '2px',
+                      marginTop: '1px',
                       padding: 0,
+                      transition: 'all 0.15s ease',
                     }}
                   >
-                    {isDone && <Check size={11} strokeWidth={3} />}
+                    {isDone && <Check size={12} strokeWidth={3} />}
                   </button>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div
                       style={{
-                        fontSize: '0.78rem',
+                        fontSize: '0.8rem',
                         fontWeight: 650,
                         color: isDone ? 'var(--text-muted)' : 'var(--text-main)',
                         textDecoration: isDone ? 'line-through' : 'none',
-                        lineHeight: 1.3,
+                        lineHeight: 1.35,
                         wordBreak: 'break-word',
                       }}
                     >
                       {t.title}
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.2rem', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.3rem', flexWrap: 'wrap' }}>
                       <span
+                        className="pill-badge"
                         style={{
-                          fontSize: '0.64rem',
-                          fontWeight: 700,
+                          fontSize: '0.62rem',
+                          padding: '0.05rem 0.35rem',
+                          fontWeight: 750,
                           color: t.deliverable_type === 'GRAPHIC' ? 'var(--accent-theme)' : 'var(--accent-purple, #8b5cf6)',
+                          background: t.deliverable_type === 'GRAPHIC' ? 'rgba(6, 182, 212, 0.1)' : 'rgba(139, 92, 246, 0.1)',
+                          border: `1px solid ${t.deliverable_type === 'GRAPHIC' ? 'rgba(6, 182, 212, 0.25)' : 'rgba(139, 92, 246, 0.25)'}`,
                         }}
                       >
                         {t.deliverable_count && t.deliverable_count > 1 ? `${t.deliverable_count}x ` : ''}
-                        {t.deliverable_type === 'GRAPHIC' ? 'Graphic' : 'Reel'}
+                        {t.deliverable_type === 'GRAPHIC' ? '🎨 Graphic' : '🎬 Reel'}
                       </span>
                       {t.assignee_name && (
-                        <span style={{ fontSize: '0.64rem', color: 'var(--text-dim)' }}>
-                          • {t.assignee_name.split(' ')[0]}
+                        <span
+                          className="pill-badge"
+                          style={{
+                            fontSize: '0.62rem',
+                            padding: '0.05rem 0.35rem',
+                            color: 'var(--text-muted)',
+                            background: 'var(--support-pill)',
+                            border: '1px solid var(--border-subtle)',
+                            fontWeight: 600,
+                          }}
+                        >
+                          👤 {t.assignee_name.split(' ')[0]}
                         </span>
                       )}
                     </div>
@@ -479,8 +534,9 @@ export function ClientDeliverablesBoard({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    paddingTop: '0.3rem',
+                    paddingTop: '0.35rem',
                     borderTop: '1px dashed var(--border-subtle)',
+                    gap: '0.4rem',
                   }}
                 >
                   {stage === 'PRE_PRODUCTION' ? (
@@ -488,17 +544,18 @@ export function ClientDeliverablesBoard({
                       type="button"
                       onClick={() => handleAdvanceTaskStage(t.id, 'PRE_PRODUCTION')}
                       style={{
-                        border: 'none',
+                        border: '1px solid rgba(6, 182, 212, 0.3)',
                         background: 'rgba(6, 182, 212, 0.12)',
                         color: 'var(--accent-theme)',
-                        borderRadius: '6px',
-                        padding: '0.15rem 0.45rem',
-                        fontSize: '0.66rem',
+                        borderRadius: '7px',
+                        padding: '0.2rem 0.55rem',
+                        fontSize: '0.68rem',
                         fontWeight: 750,
                         cursor: 'pointer',
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '0.2rem',
+                        gap: '0.25rem',
+                        transition: 'background 0.15s ease',
                       }}
                     >
                       <span>➔ Production</span>
@@ -508,23 +565,24 @@ export function ClientDeliverablesBoard({
                       type="button"
                       onClick={() => handleAdvanceTaskStage(t.id, 'PRODUCTION')}
                       style={{
-                        border: 'none',
+                        border: '1px solid rgba(16, 185, 129, 0.3)',
                         background: 'rgba(16, 185, 129, 0.12)',
                         color: 'var(--accent-green)',
-                        borderRadius: '6px',
-                        padding: '0.15rem 0.45rem',
-                        fontSize: '0.66rem',
+                        borderRadius: '7px',
+                        padding: '0.2rem 0.55rem',
+                        fontSize: '0.68rem',
                         fontWeight: 750,
                         cursor: 'pointer',
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '0.2rem',
+                        gap: '0.25rem',
+                        transition: 'background 0.15s ease',
                       }}
                     >
                       <span>➔ Publish</span>
                     </button>
                   ) : (
-                    <span style={{ fontSize: '0.65rem', fontWeight: 700, color: isDone ? 'var(--accent-green)' : 'var(--text-dim)' }}>
+                    <span style={{ fontSize: '0.66rem', fontWeight: 700, color: isDone ? 'var(--accent-green)' : 'var(--text-dim)', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                       {isDone ? '✓ Counted in Quota' : 'Check off to count'}
                     </span>
                   )}
@@ -541,9 +599,11 @@ export function ClientDeliverablesBoard({
                         border: 'none',
                         background: 'transparent',
                         color: 'var(--text-dim)',
-                        fontSize: '0.62rem',
+                        fontSize: '0.64rem',
+                        fontWeight: 650,
                         cursor: 'pointer',
-                        padding: '0.1rem',
+                        padding: '0.15rem 0.3rem',
+                        borderRadius: '4px',
                       }}
                     >
                       ↩ Back
@@ -556,15 +616,32 @@ export function ClientDeliverablesBoard({
 
           {stageTasks.length === 0 && !isAdding && (
             <div
+              onClick={() => {
+                setQuickAddState({ clientId: client.id, stage });
+                setQuickAddTitle('');
+                setQuickAddType('REEL');
+                setQuickAddAssigneeId(currentUser.id);
+              }}
               style={{
-                padding: '0.85rem 0.5rem',
+                padding: '1.1rem 0.75rem',
                 textAlign: 'center',
-                fontSize: '0.7rem',
-                color: 'var(--text-dim)',
-                fontStyle: 'italic',
+                borderRadius: '10px',
+                border: '1px dashed var(--border-subtle)',
+                background: 'rgba(255, 255, 255, 0.015)',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '0.35rem',
+                transition: 'border-color 0.2s ease, background 0.2s ease',
               }}
             >
-              No items in {title.split(' ')[1].toLowerCase()}
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', fontWeight: 600 }}>
+                No tasks in {title.replace(/[^a-zA-Z\s-]/g, '').trim()}
+              </span>
+              <span style={{ fontSize: '0.68rem', color: stageColor, fontWeight: 750 }}>
+                + Add task
+              </span>
             </div>
           )}
         </div>
@@ -575,17 +652,18 @@ export function ClientDeliverablesBoard({
             style={{
               display: 'flex',
               flexDirection: 'column',
-              gap: '0.35rem',
+              gap: '0.45rem',
               background: 'var(--bg-card)',
-              padding: '0.5rem',
-              borderRadius: '8px',
-              border: '1px solid var(--border-subtle)',
+              padding: '0.65rem',
+              borderRadius: '12px',
+              border: `1.5px solid ${stageColor}`,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
             }}
           >
             <input
               type="text"
               autoFocus
-              placeholder={`Task title (${title.split(' ')[1]})...`}
+              placeholder={`Task title (${title.replace(/[^a-zA-Z\s-]/g, '').trim()})...`}
               value={quickAddTitle}
               onChange={(e) => setQuickAddTitle(e.target.value)}
               onKeyDown={(e) => {
@@ -597,29 +675,31 @@ export function ClientDeliverablesBoard({
                 }
               }}
               style={{
-                fontSize: '0.76rem',
+                fontSize: '0.78rem',
                 fontWeight: 600,
-                background: 'transparent',
-                border: 'none',
+                background: 'var(--support-pill)',
+                border: '1px solid var(--border-subtle)',
+                borderRadius: '8px',
                 color: 'var(--text-main)',
                 outline: 'none',
-                padding: '0.2rem',
+                padding: '0.45rem 0.6rem',
               }}
             />
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.35rem', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'wrap', flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.4rem', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap', flex: 1 }}>
                 <select
                   value={quickAddType}
                   onChange={(e) => setQuickAddType(e.target.value as DeliverableType)}
                   style={{
-                    fontSize: '0.68rem',
+                    fontSize: '0.7rem',
                     fontWeight: 700,
                     background: 'var(--support-pill)',
                     border: '1px solid var(--border-subtle)',
-                    borderRadius: '5px',
+                    borderRadius: '6px',
                     color: 'var(--text-main)',
-                    padding: '0.15rem 0.35rem',
+                    padding: '0.25rem 0.45rem',
                     outline: 'none',
+                    cursor: 'pointer',
                   }}
                 >
                   <option value="REEL">🎬 Reel</option>
@@ -632,15 +712,16 @@ export function ClientDeliverablesBoard({
                     onChange={(e) => setQuickAddAssigneeId(e.target.value)}
                     title="Assign to team member"
                     style={{
-                      fontSize: '0.68rem',
+                      fontSize: '0.7rem',
                       fontWeight: 650,
                       background: 'var(--support-pill)',
                       border: '1px solid var(--border-subtle)',
-                      borderRadius: '5px',
+                      borderRadius: '6px',
                       color: 'var(--text-main)',
-                      padding: '0.15rem 0.35rem',
-                      maxWidth: '120px',
+                      padding: '0.25rem 0.45rem',
+                      maxWidth: '130px',
                       outline: 'none',
+                      cursor: 'pointer',
                     }}
                   >
                     {allUsers.filter((u) => u.is_active !== false).map((u) => (
@@ -651,18 +732,16 @@ export function ClientDeliverablesBoard({
                   </select>
                 )}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                 <button
                   type="button"
                   onClick={() => submitQuickAdd(client.client_name, stage)}
+                  className="btn-accent"
                   style={{
-                    background: 'var(--accent-theme)',
-                    color: 'var(--accent-contrast)',
-                    border: 'none',
-                    borderRadius: '5px',
-                    fontSize: '0.66rem',
+                    borderRadius: '6px',
+                    fontSize: '0.7rem',
                     fontWeight: 750,
-                    padding: '0.2rem 0.5rem',
+                    padding: '0.25rem 0.65rem',
                     cursor: 'pointer',
                   }}
                 >
@@ -676,10 +755,14 @@ export function ClientDeliverablesBoard({
                     border: 'none',
                     color: 'var(--text-dim)',
                     cursor: 'pointer',
-                    padding: '0.1rem',
+                    padding: '0.2rem',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
-                  <X size={12} />
+                  <X size={14} />
                 </button>
               </div>
             </div>
@@ -696,20 +779,21 @@ export function ClientDeliverablesBoard({
             style={{
               border: '1px dashed var(--border-subtle)',
               background: 'transparent',
-              borderRadius: '7px',
+              borderRadius: '9px',
               color: 'var(--text-dim)',
-              fontSize: '0.7rem',
+              fontSize: '0.72rem',
               fontWeight: 650,
-              padding: '0.35rem',
+              padding: '0.45rem',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '0.25rem',
+              gap: '0.3rem',
               marginTop: 'auto',
+              transition: 'all 0.15s ease',
             }}
           >
-            <Plus size={11} />
+            <Plus size={12} />
             <span>Add Task</span>
           </button>
         )}
@@ -734,29 +818,29 @@ export function ClientDeliverablesBoard({
           boxShadow: 'inset 2px 2px 5px var(--clay-highlight), 0 12px 30px -4px var(--clay-drop-shadow)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
           <div
             style={{
-              width: '44px',
-              height: '44px',
+              width: '46px',
+              height: '46px',
               borderRadius: '14px',
               background: 'rgba(6, 182, 212, 0.14)',
               color: 'var(--accent-theme)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              border: '1.5px solid rgba(6, 182, 212, 0.3)',
-              boxShadow: 'inset 1px 1px 3px var(--clay-highlight)',
+              border: '1.5px solid rgba(6, 182, 212, 0.35)',
+              boxShadow: 'inset 1.5px 1.5px 3px var(--clay-highlight)',
             }}
           >
             <Briefcase size={22} />
           </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <h2 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', flexWrap: 'wrap' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', margin: 0, letterSpacing: '-0.01em' }}>
                 Client Deliverables Radar
               </h2>
-              <span className="pill-badge" style={{ fontSize: '0.72rem', color: 'var(--accent-theme)', fontWeight: 700 }}>
+              <span className="pill-badge" style={{ fontSize: '0.72rem', color: 'var(--accent-theme)', fontWeight: 750, background: 'rgba(6, 182, 212, 0.1)', border: '1px solid rgba(6, 182, 212, 0.25)' }}>
                 Monthly Retainers
               </span>
             </div>
@@ -774,7 +858,7 @@ export function ClientDeliverablesBoard({
               alignItems: 'center',
               gap: '0.4rem',
               background: 'var(--support-pill)',
-              padding: '0.3rem 0.5rem',
+              padding: '0.35rem 0.55rem',
               borderRadius: '14px',
               border: '1px solid var(--border-subtle)',
               boxShadow: 'inset 1px 1px 2px var(--clay-highlight)',
@@ -795,17 +879,19 @@ export function ClientDeliverablesBoard({
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
+                transition: 'all 0.15s ease',
               }}
             >
               <ChevronLeft size={16} />
             </button>
 
-            <div style={{ textAlign: 'center', padding: '0 0.6rem', minWidth: '150px' }}>
-              <div style={{ fontSize: '0.88rem', fontWeight: 800, color: 'var(--text-main)' }}>
+            <div style={{ textAlign: 'center', padding: '0 0.65rem', minWidth: '150px' }}>
+              <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-main)' }}>
                 {formattedMonthTitle}
               </div>
-              <div style={{ fontSize: '0.68rem', color: isCurrentMonth ? 'var(--accent-theme)' : isPastMonth ? 'var(--accent-amber)' : 'var(--text-dim)', fontWeight: 650 }}>
-                {isCurrentMonth ? '● Current Month' : isPastMonth ? '● Past Month Review' : '● Upcoming Month'}
+              <div style={{ fontSize: '0.68rem', color: isCurrentMonth ? 'var(--accent-green)' : isPastMonth ? 'var(--accent-amber)' : 'var(--text-dim)', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}>
+                <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: isCurrentMonth ? 'var(--accent-green)' : isPastMonth ? 'var(--accent-amber)' : 'var(--text-dim)' }} />
+                <span>{isCurrentMonth ? 'Current Month' : isPastMonth ? 'Past Month Review' : 'Upcoming Month'}</span>
               </div>
             </div>
 
@@ -824,6 +910,7 @@ export function ClientDeliverablesBoard({
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
+                transition: 'all 0.15s ease',
               }}
             >
               <ChevronRight size={16} />
@@ -858,18 +945,19 @@ export function ClientDeliverablesBoard({
               onClick={handleOpenAddModal}
               className="btn-accent"
               style={{
-                padding: '0.45rem 0.95rem',
+                padding: '0.45rem 1rem',
                 minHeight: '38px',
                 borderRadius: '12px',
                 fontSize: '0.82rem',
                 fontWeight: 750,
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '0.35rem',
+                gap: '0.4rem',
+                cursor: 'pointer',
               }}
             >
               <Plus size={15} />
-              <span>+ Add Client</span>
+              <span>Add Client</span>
             </button>
           )}
         </div>
@@ -881,20 +969,33 @@ export function ClientDeliverablesBoard({
         <div
           className="glass-panel"
           style={{
-            padding: '1rem 1.2rem',
+            padding: '1.1rem 1.25rem',
             borderRadius: '18px',
             border: '1px solid var(--border-subtle)',
             background: 'var(--bg-card)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            minHeight: '100px',
           }}
         >
-          <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', fontWeight: 700, textTransform: 'uppercase' }}>
-            Retainer Accounts
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', fontWeight: 750, textTransform: 'uppercase', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <Briefcase size={13} color="var(--accent-theme)" />
+              <span>Retainer Accounts</span>
+            </span>
+            <span className="pill-badge" style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>
+              Active
+            </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginTop: '0.35rem' }}>
-            <span className="tabular-numbers" style={{ fontSize: '1.65rem', fontWeight: 850, color: 'var(--text-main)' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.45rem', marginTop: '0.4rem' }}>
+            <span className="tabular-numbers" style={{ fontSize: '1.75rem', fontWeight: 850, color: 'var(--text-main)', lineHeight: 1 }}>
               {stats.totalClients}
             </span>
-            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>active in {formattedMonthTitle.split(' ')[0]}</span>
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>in {formattedMonthTitle.split(' ')[0]}</span>
+          </div>
+          <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', marginTop: '0.3rem' }}>
+            All agency clients monitored
           </div>
         </div>
 
@@ -902,27 +1003,44 @@ export function ClientDeliverablesBoard({
         <div
           className="glass-panel"
           style={{
-            padding: '1rem 1.2rem',
+            padding: '1.1rem 1.25rem',
             borderRadius: '18px',
-            border: '1px solid rgba(139, 92, 246, 0.28)',
+            border: '1px solid rgba(139, 92, 246, 0.3)',
             background: 'rgba(139, 92, 246, 0.05)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            minHeight: '100px',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '0.72rem', color: 'var(--accent-purple, #8b5cf6)', fontWeight: 750, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-              <Film size={13} /> Reels Delivered
+            <span style={{ fontSize: '0.72rem', color: 'var(--accent-purple, #8b5cf6)', fontWeight: 750, textTransform: 'uppercase', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <Film size={13} />
+              <span>Reels Delivered</span>
             </span>
-            <span className="tabular-numbers" style={{ fontSize: '0.78rem', fontWeight: 750, color: 'var(--text-main)' }}>
+            <span className="pill-badge tabular-numbers" style={{ fontSize: '0.68rem', fontWeight: 750, color: 'var(--accent-purple, #8b5cf6)', background: 'rgba(139, 92, 246, 0.12)' }}>
               {stats.targetReels > 0 ? Math.round((stats.completedReels / stats.targetReels) * 100) : 100}%
             </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem', marginTop: '0.35rem' }}>
-            <span className="tabular-numbers" style={{ fontSize: '1.65rem', fontWeight: 850, color: 'var(--accent-purple, #8b5cf6)' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem', marginTop: '0.4rem' }}>
+            <span className="tabular-numbers" style={{ fontSize: '1.75rem', fontWeight: 850, color: 'var(--accent-purple, #8b5cf6)', lineHeight: 1 }}>
               {stats.completedReels}
             </span>
-            <span className="tabular-numbers" style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 700 }}>
+            <span className="tabular-numbers" style={{ fontSize: '0.88rem', color: 'var(--text-muted)', fontWeight: 700 }}>
               / {stats.targetReels} target
             </span>
+          </div>
+          {/* Mini progress bar */}
+          <div style={{ width: '100%', height: '4px', borderRadius: '999px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden', marginTop: '0.4rem' }}>
+            <div
+              style={{
+                width: `${stats.targetReels > 0 ? Math.min(100, Math.round((stats.completedReels / stats.targetReels) * 100)) : 100}%`,
+                height: '100%',
+                borderRadius: '999px',
+                background: 'var(--accent-purple, #8b5cf6)',
+                transition: 'width 0.3s ease',
+              }}
+            />
           </div>
         </div>
 
@@ -930,27 +1048,44 @@ export function ClientDeliverablesBoard({
         <div
           className="glass-panel"
           style={{
-            padding: '1rem 1.2rem',
+            padding: '1.1rem 1.25rem',
             borderRadius: '18px',
-            border: '1px solid rgba(6, 182, 212, 0.28)',
+            border: '1px solid rgba(6, 182, 212, 0.3)',
             background: 'rgba(6, 182, 212, 0.05)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            minHeight: '100px',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '0.72rem', color: 'var(--accent-theme)', fontWeight: 750, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-              <ImageIcon size={13} /> Graphic Posts
+            <span style={{ fontSize: '0.72rem', color: 'var(--accent-theme)', fontWeight: 750, textTransform: 'uppercase', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <ImageIcon size={13} />
+              <span>Graphic Posts</span>
             </span>
-            <span className="tabular-numbers" style={{ fontSize: '0.78rem', fontWeight: 750, color: 'var(--text-main)' }}>
+            <span className="pill-badge tabular-numbers" style={{ fontSize: '0.68rem', fontWeight: 750, color: 'var(--accent-theme)', background: 'rgba(6, 182, 212, 0.12)' }}>
               {stats.targetGraphics > 0 ? Math.round((stats.completedGraphics / stats.targetGraphics) * 100) : 100}%
             </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.3rem', marginTop: '0.35rem' }}>
-            <span className="tabular-numbers" style={{ fontSize: '1.65rem', fontWeight: 850, color: 'var(--accent-theme)' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem', marginTop: '0.4rem' }}>
+            <span className="tabular-numbers" style={{ fontSize: '1.75rem', fontWeight: 850, color: 'var(--accent-theme)', lineHeight: 1 }}>
               {stats.completedGraphics}
             </span>
-            <span className="tabular-numbers" style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 700 }}>
+            <span className="tabular-numbers" style={{ fontSize: '0.88rem', color: 'var(--text-muted)', fontWeight: 700 }}>
               / {stats.targetGraphics} target
             </span>
+          </div>
+          {/* Mini progress bar */}
+          <div style={{ width: '100%', height: '4px', borderRadius: '999px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden', marginTop: '0.4rem' }}>
+            <div
+              style={{
+                width: `${stats.targetGraphics > 0 ? Math.min(100, Math.round((stats.completedGraphics / stats.targetGraphics) * 100)) : 100}%`,
+                height: '100%',
+                borderRadius: '999px',
+                background: 'var(--accent-theme)',
+                transition: 'width 0.3s ease',
+              }}
+            />
           </div>
         </div>
 
@@ -958,42 +1093,47 @@ export function ClientDeliverablesBoard({
         <div
           className="glass-panel"
           style={{
-            padding: '1rem 1.2rem',
+            padding: '1.1rem 1.25rem',
             borderRadius: '18px',
             border: `1px solid ${stats.lackingCount > 0 ? 'rgba(255, 71, 87, 0.35)' : 'rgba(16, 185, 129, 0.35)'}`,
             background: stats.lackingCount > 0 ? 'rgba(255, 71, 87, 0.06)' : 'rgba(16, 185, 129, 0.06)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            minHeight: '100px',
           }}
         >
-          <div style={{ fontSize: '0.72rem', color: stats.lackingCount > 0 ? 'var(--accent-red)' : 'var(--accent-green)', fontWeight: 750, textTransform: 'uppercase' }}>
+          <div style={{ fontSize: '0.72rem', color: stats.lackingCount > 0 ? 'var(--accent-red)' : 'var(--accent-green)', fontWeight: 750, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
             {isPastMonth ? 'Month Wrap Status' : 'Pacing & Health'}
           </div>
-          <div style={{ marginTop: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+          <div style={{ marginTop: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             {stats.lackingCount > 0 ? (
               <>
-                <AlertTriangle size={20} color="var(--accent-red)" />
+                <AlertTriangle size={22} color="var(--accent-red)" style={{ minWidth: '22px' }} />
                 <div>
                   <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--accent-red)' }}>
                     {stats.lackingCount} {stats.lackingCount === 1 ? 'Client Lacking' : 'Clients Lacking'}
                   </div>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', marginTop: '2px' }}>
                     {isPastMonth ? 'Deficit detected in past month' : 'Needs attention to meet monthly goal'}
                   </div>
                 </div>
               </>
             ) : (
               <>
-                <CheckCircle2 size={20} color="var(--accent-green)" />
+                <CheckCircle2 size={22} color="var(--accent-green)" style={{ minWidth: '22px' }} />
                 <div>
                   <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--accent-green)' }}>
                     All Targets Fulfilled ✨
                   </div>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', marginTop: '2px' }}>
                     100% quota achieved for this month
                   </div>
                 </div>
               </>
             )}
           </div>
+          <div style={{ height: '4px' }} />
         </div>
       </div>
 
@@ -1007,21 +1147,21 @@ export function ClientDeliverablesBoard({
           className="glass-panel"
           style={{
             textAlign: 'center',
-            padding: '3rem 1.5rem',
+            padding: '3.5rem 1.5rem',
             borderRadius: '24px',
             background: 'var(--bg-card)',
             border: '1.5px dashed var(--border-subtle)',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: '0.75rem',
+            gap: '0.85rem',
           }}
         >
-          <div style={{ fontSize: '2.5rem' }}>📁</div>
-          <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+          <div style={{ fontSize: '2.8rem' }}>📁</div>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
             No Client Deliverables for {formattedMonthTitle}
           </h3>
-          <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', margin: 0, maxWidth: '420px', lineHeight: 1.5 }}>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0, maxWidth: '440px', lineHeight: 1.5 }}>
             No agency client retainers exist for this month yet. Use the button below to add a new client deliverable goal.
           </p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginTop: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -1030,22 +1170,22 @@ export function ClientDeliverablesBoard({
               onClick={handleOpenAddModal}
               className="btn-accent"
               style={{
-                padding: '0.55rem 1.15rem',
+                padding: '0.55rem 1.25rem',
                 borderRadius: '12px',
                 fontWeight: 750,
-                fontSize: '0.84rem',
+                fontSize: '0.85rem',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '0.35rem',
+                gap: '0.4rem',
               }}
             >
               <Plus size={15} />
-              <span>+ Add First Client</span>
+              <span>Add First Client</span>
             </button>
           </div>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 460px), 1fr))', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 500px), 1fr))', gap: '1.15rem' }}>
           {clients.map((c) => {
             const reelsShort = Math.max(0, (c.target_reels || 0) - (c.completed_reels || 0));
             const graphicsShort = Math.max(0, (c.target_graphics || 0) - (c.completed_graphics || 0));
@@ -1053,81 +1193,114 @@ export function ClientDeliverablesBoard({
             const reelsRate = c.target_reels > 0 ? Math.min(100, Math.round(((c.completed_reels || 0) / c.target_reels) * 100)) : 100;
             const graphicsRate = c.target_graphics > 0 ? Math.min(100, Math.round(((c.completed_graphics || 0) / c.target_graphics) * 100)) : 100;
             const isAllDone = !isLacking && (c.target_reels > 0 || c.target_graphics > 0);
+            const avatarTheme = getClientAvatarTheme(c.client_name);
 
             return (
               <div
                 key={c.id}
                 className="glass-panel"
                 style={{
-                  padding: '1.25rem',
-                  borderRadius: '20px',
+                  padding: '1.35rem',
+                  borderRadius: '22px',
                   background: 'var(--bg-card)',
                   border: isAllDone
-                    ? '1.5px solid rgba(16, 185, 129, 0.4)'
+                    ? '1.5px solid rgba(16, 185, 129, 0.45)'
                     : isPastMonth && isLacking
-                    ? '1.5px solid rgba(255, 71, 87, 0.4)'
+                    ? '1.5px solid rgba(255, 71, 87, 0.45)'
                     : '1.5px solid var(--border-subtle)',
                   boxShadow: 'inset 1.5px 1.5px 3px var(--clay-highlight), 0 10px 24px -4px var(--clay-drop-shadow)',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '1rem',
+                  gap: '1.1rem',
                   position: 'relative',
                 }}
               >
                 {/* Client Header */}
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem' }}>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
-                      <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
-                        {c.client_name}
-                      </h3>
-                      {isAllDone && (
-                        <span className="pill-badge" style={{ fontSize: '0.66rem', color: 'var(--accent-green)', fontWeight: 700, background: 'rgba(16, 185, 129, 0.12)' }}>
-                          ✓ 100% Fulfilled
-                        </span>
-                      )}
-                      {isPastMonth && isLacking && (
-                        <span className="pill-badge" style={{ fontSize: '0.66rem', color: 'var(--accent-red)', fontWeight: 750, background: 'rgba(255, 71, 87, 0.12)' }}>
-                          ⚠️ Deficit in {formattedMonthTitle.split(' ')[0]}
-                        </span>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                    {/* Monogram Avatar Badge */}
+                    <div
+                      style={{
+                        width: '44px',
+                        height: '44px',
+                        minWidth: '44px',
+                        borderRadius: '13px',
+                        background: avatarTheme.bg,
+                        border: `1.5px solid ${avatarTheme.border}`,
+                        color: avatarTheme.color,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 850,
+                        fontSize: '0.92rem',
+                        letterSpacing: '0.04em',
+                        boxShadow: 'inset 1px 1px 3px var(--clay-highlight)',
+                      }}
+                    >
+                      {getClientInitials(c.client_name)}
+                    </div>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                          {c.client_name}
+                        </h3>
+                        {isAllDone && (
+                          <span className="pill-badge" style={{ fontSize: '0.68rem', color: 'var(--accent-green)', fontWeight: 750, background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+                            ✓ 100% Fulfilled
+                          </span>
+                        )}
+                        {isPastMonth && isLacking && (
+                          <span className="pill-badge" style={{ fontSize: '0.68rem', color: 'var(--accent-red)', fontWeight: 750, background: 'rgba(255, 71, 87, 0.12)', border: '1px solid rgba(255, 71, 87, 0.3)' }}>
+                            ⚠️ Deficit ({reelsShort + graphicsShort} lacking)
+                          </span>
+                        )}
+                        {!isAllDone && (!isPastMonth || !isLacking) && (
+                          <span className="pill-badge" style={{ fontSize: '0.68rem', color: 'var(--accent-theme)', fontWeight: 700, background: 'rgba(6, 182, 212, 0.1)' }}>
+                            ● Active Pacing
+                          </span>
+                        )}
+                      </div>
+                      {c.notes && (
+                        <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0.25rem 0 0 0', lineHeight: 1.35 }}>
+                          {c.notes}
+                        </p>
                       )}
                     </div>
-                    {c.notes && (
-                      <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', margin: '0.25rem 0 0 0', lineHeight: 1.35 }}>
-                        {c.notes}
-                      </p>
-                    )}
                   </div>
 
                   {/* Edit & Delete Controls */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                     <button
                       type="button"
                       onClick={() => handleOpenEditModal(c)}
                       title="Edit Quota Targets"
                       style={{
-                        width: '30px',
-                        height: '30px',
-                        borderRadius: '8px',
+                        height: '32px',
+                        padding: '0 0.65rem',
+                        borderRadius: '9px',
                         border: '1px solid var(--border-subtle)',
                         background: 'var(--support-pill)',
                         color: 'var(--text-muted)',
-                        display: 'flex',
+                        display: 'inline-flex',
                         alignItems: 'center',
-                        justifyContent: 'center',
+                        gap: '0.3rem',
+                        fontSize: '0.75rem',
+                        fontWeight: 650,
                         cursor: 'pointer',
+                        transition: 'all 0.15s ease',
                       }}
                     >
                       <Edit3 size={13} />
+                      <span>Edit Targets</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setClientToDelete(c)}
                       title="Delete Client"
                       style={{
-                        width: '30px',
-                        height: '30px',
-                        borderRadius: '8px',
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '9px',
                         border: '1px solid var(--border-subtle)',
                         background: 'var(--support-pill)',
                         color: 'var(--accent-red)',
@@ -1135,6 +1308,7 @@ export function ClientDeliverablesBoard({
                         alignItems: 'center',
                         justifyContent: 'center',
                         cursor: 'pointer',
+                        transition: 'all 0.15s ease',
                       }}
                     >
                       <Trash2 size={13} />
@@ -1146,165 +1320,201 @@ export function ClientDeliverablesBoard({
                 <div
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))',
-                    gap: '0.75rem',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 230px), 1fr))',
+                    gap: '0.85rem',
                   }}
                 >
                   {/* 1. Reels Tracker Box */}
                   <div
                     style={{
-                      padding: '0.85rem',
-                      borderRadius: '14px',
+                      padding: '0.95rem',
+                      borderRadius: '16px',
                       background: 'var(--support-pill)',
                       border: '1px solid var(--border-subtle)',
+                      boxShadow: 'inset 1px 1px 2px var(--clay-highlight)',
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: '0.5rem',
+                      gap: '0.6rem',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: '0.76rem', fontWeight: 750, color: 'var(--text-main)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                        <Film size={14} color="var(--accent-purple, #8b5cf6)" />
-                        <span>Reels</span>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 750, color: 'var(--text-main)', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <span style={{ display: 'inline-flex', padding: '0.2rem', borderRadius: '6px', background: 'rgba(139, 92, 246, 0.15)', color: 'var(--accent-purple, #8b5cf6)' }}>
+                          <Film size={14} />
+                        </span>
+                        <span>Reels Quota</span>
                       </span>
-                      <span className="tabular-numbers" style={{ fontSize: '0.8rem', fontWeight: 750, color: c.completed_reels >= c.target_reels && c.target_reels > 0 ? 'var(--accent-green)' : 'var(--text-main)' }}>
-                        {c.completed_reels} / {c.target_reels}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <span className="tabular-numbers" style={{ fontSize: '0.84rem', fontWeight: 800, color: c.completed_reels >= c.target_reels && c.target_reels > 0 ? 'var(--accent-green)' : 'var(--text-main)' }}>
+                          {c.completed_reels} / {c.target_reels}
+                        </span>
+                        <span className="pill-badge tabular-numbers" style={{ fontSize: '0.66rem', fontWeight: 750, color: 'var(--accent-purple, #8b5cf6)', background: 'rgba(139, 92, 246, 0.12)' }}>
+                          {reelsRate}%
+                        </span>
+                      </div>
                     </div>
 
                     {/* Progress Bar */}
-                    <div style={{ width: '100%', height: '6px', borderRadius: '999px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                    <div style={{ width: '100%', height: '7px', borderRadius: '999px', background: 'rgba(255, 255, 255, 0.06)', overflow: 'hidden' }}>
                       <div
                         style={{
                           width: `${reelsRate}%`,
                           height: '100%',
                           borderRadius: '999px',
-                          background: c.completed_reels >= c.target_reels && c.target_reels > 0 ? 'var(--accent-green)' : 'var(--accent-purple, #8b5cf6)',
-                          transition: 'width 0.3s ease',
+                          background: c.completed_reels >= c.target_reels && c.target_reels > 0 ? 'linear-gradient(90deg, #10b981, #059669)' : 'linear-gradient(90deg, #8b5cf6, #a855f7)',
+                          transition: 'width 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
                         }}
                       />
                     </div>
 
-                    {/* Stepper Buttons */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.35rem', marginTop: '0.1rem' }}>
-                      <button
-                        type="button"
-                        disabled={c.completed_reels <= 0}
-                        onClick={() => handleQuickDelta(c, 'reels', -1)}
-                        style={{
-                          width: '28px',
-                          height: '28px',
-                          borderRadius: '7px',
-                          border: '1px solid var(--border-subtle)',
-                          background: 'var(--bg-card)',
-                          color: 'var(--text-main)',
-                          fontWeight: 700,
-                          fontSize: '0.85rem',
-                          cursor: c.completed_reels <= 0 ? 'not-allowed' : 'pointer',
-                          opacity: c.completed_reels <= 0 ? 0.4 : 1,
-                        }}
-                      >
-                        -
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleQuickDelta(c, 'reels', 1)}
-                        style={{
-                          padding: '0 0.65rem',
-                          height: '28px',
-                          borderRadius: '7px',
-                          border: 'none',
-                          background: 'rgba(139, 92, 246, 0.18)',
-                          color: 'var(--accent-purple, #8b5cf6)',
-                          fontWeight: 750,
-                          fontSize: '0.78rem',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '0.25rem',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        <span>+1 Delivered</span>
-                      </button>
+                    {/* Stepper Buttons & Remaining info */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.4rem', marginTop: '0.1rem' }}>
+                      <span style={{ fontSize: '0.7rem', color: reelsShort === 0 ? 'var(--accent-green)' : 'var(--text-dim)', fontWeight: 650 }}>
+                        {reelsShort === 0 ? 'Target achieved! ✨' : `${reelsShort} remaining`}
+                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <button
+                          type="button"
+                          disabled={c.completed_reels <= 0}
+                          onClick={() => handleQuickDelta(c, 'reels', -1)}
+                          title="Decrease 1 reel"
+                          style={{
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: '8px',
+                            border: '1px solid var(--border-subtle)',
+                            background: 'var(--bg-card)',
+                            color: 'var(--text-main)',
+                            fontWeight: 750,
+                            fontSize: '0.9rem',
+                            cursor: c.completed_reels <= 0 ? 'not-allowed' : 'pointer',
+                            opacity: c.completed_reels <= 0 ? 0.35 : 1,
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          -
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleQuickDelta(c, 'reels', 1)}
+                          title="Add 1 delivered reel"
+                          style={{
+                            padding: '0 0.75rem',
+                            height: '28px',
+                            borderRadius: '8px',
+                            border: '1px solid rgba(139, 92, 246, 0.3)',
+                            background: 'rgba(139, 92, 246, 0.15)',
+                            color: 'var(--accent-purple, #8b5cf6)',
+                            fontWeight: 750,
+                            fontSize: '0.78rem',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.3rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          <Plus size={12} />
+                          <span>Delivered</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
 
                   {/* 2. Graphic Posts Tracker Box */}
                   <div
                     style={{
-                      padding: '0.85rem',
-                      borderRadius: '14px',
+                      padding: '0.95rem',
+                      borderRadius: '16px',
                       background: 'var(--support-pill)',
                       border: '1px solid var(--border-subtle)',
+                      boxShadow: 'inset 1px 1px 2px var(--clay-highlight)',
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: '0.5rem',
+                      gap: '0.6rem',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{ fontSize: '0.76rem', fontWeight: 750, color: 'var(--text-main)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                        <ImageIcon size={14} color="var(--accent-theme)" />
+                      <span style={{ fontSize: '0.78rem', fontWeight: 750, color: 'var(--text-main)', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <span style={{ display: 'inline-flex', padding: '0.2rem', borderRadius: '6px', background: 'rgba(6, 182, 212, 0.15)', color: 'var(--accent-theme)' }}>
+                          <ImageIcon size={14} />
+                        </span>
                         <span>Graphic Posts</span>
                       </span>
-                      <span className="tabular-numbers" style={{ fontSize: '0.8rem', fontWeight: 750, color: c.completed_graphics >= c.target_graphics && c.target_graphics > 0 ? 'var(--accent-green)' : 'var(--text-main)' }}>
-                        {c.completed_graphics} / {c.target_graphics}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <span className="tabular-numbers" style={{ fontSize: '0.84rem', fontWeight: 800, color: c.completed_graphics >= c.target_graphics && c.target_graphics > 0 ? 'var(--accent-green)' : 'var(--text-main)' }}>
+                          {c.completed_graphics} / {c.target_graphics}
+                        </span>
+                        <span className="pill-badge tabular-numbers" style={{ fontSize: '0.66rem', fontWeight: 750, color: 'var(--accent-theme)', background: 'rgba(6, 182, 212, 0.12)' }}>
+                          {graphicsRate}%
+                        </span>
+                      </div>
                     </div>
 
                     {/* Progress Bar */}
-                    <div style={{ width: '100%', height: '6px', borderRadius: '999px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                    <div style={{ width: '100%', height: '7px', borderRadius: '999px', background: 'rgba(255, 255, 255, 0.06)', overflow: 'hidden' }}>
                       <div
                         style={{
                           width: `${graphicsRate}%`,
                           height: '100%',
                           borderRadius: '999px',
-                          background: c.completed_graphics >= c.target_graphics && c.target_graphics > 0 ? 'var(--accent-green)' : 'var(--accent-theme)',
-                          transition: 'width 0.3s ease',
+                          background: c.completed_graphics >= c.target_graphics && c.target_graphics > 0 ? 'linear-gradient(90deg, #10b981, #059669)' : 'linear-gradient(90deg, #06b6d4, #3b82f6)',
+                          transition: 'width 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
                         }}
                       />
                     </div>
 
-                    {/* Stepper Buttons */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.35rem', marginTop: '0.1rem' }}>
-                      <button
-                        type="button"
-                        disabled={c.completed_graphics <= 0}
-                        onClick={() => handleQuickDelta(c, 'graphics', -1)}
-                        style={{
-                          width: '28px',
-                          height: '28px',
-                          borderRadius: '7px',
-                          border: '1px solid var(--border-subtle)',
-                          background: 'var(--bg-card)',
-                          color: 'var(--text-main)',
-                          fontWeight: 700,
-                          fontSize: '0.85rem',
-                          cursor: c.completed_graphics <= 0 ? 'not-allowed' : 'pointer',
-                          opacity: c.completed_graphics <= 0 ? 0.4 : 1,
-                        }}
-                      >
-                        -
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleQuickDelta(c, 'graphics', 1)}
-                        style={{
-                          padding: '0 0.65rem',
-                          height: '28px',
-                          borderRadius: '7px',
-                          border: 'none',
-                          background: 'rgba(6, 182, 212, 0.18)',
-                          color: 'var(--accent-theme)',
-                          fontWeight: 750,
-                          fontSize: '0.78rem',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '0.25rem',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        <span>+1 Delivered</span>
-                      </button>
+                    {/* Stepper Buttons & Remaining info */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.4rem', marginTop: '0.1rem' }}>
+                      <span style={{ fontSize: '0.7rem', color: graphicsShort === 0 ? 'var(--accent-green)' : 'var(--text-dim)', fontWeight: 650 }}>
+                        {graphicsShort === 0 ? 'Target achieved! ✨' : `${graphicsShort} remaining`}
+                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <button
+                          type="button"
+                          disabled={c.completed_graphics <= 0}
+                          onClick={() => handleQuickDelta(c, 'graphics', -1)}
+                          title="Decrease 1 graphic post"
+                          style={{
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: '8px',
+                            border: '1px solid var(--border-subtle)',
+                            background: 'var(--bg-card)',
+                            color: 'var(--text-main)',
+                            fontWeight: 750,
+                            fontSize: '0.9rem',
+                            cursor: c.completed_graphics <= 0 ? 'not-allowed' : 'pointer',
+                            opacity: c.completed_graphics <= 0 ? 0.35 : 1,
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          -
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleQuickDelta(c, 'graphics', 1)}
+                          title="Add 1 delivered graphic post"
+                          style={{
+                            padding: '0 0.75rem',
+                            height: '28px',
+                            borderRadius: '8px',
+                            border: '1px solid rgba(6, 182, 212, 0.3)',
+                            background: 'rgba(6, 182, 212, 0.15)',
+                            color: 'var(--accent-theme)',
+                            fontWeight: 750,
+                            fontSize: '0.78rem',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.3rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          <Plus size={12} />
+                          <span>Delivered</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1313,19 +1523,19 @@ export function ClientDeliverablesBoard({
                 {isPastMonth && isLacking && (
                   <div
                     style={{
-                      padding: '0.5rem 0.75rem',
-                      borderRadius: '10px',
+                      padding: '0.6rem 0.85rem',
+                      borderRadius: '12px',
                       background: 'rgba(255, 71, 87, 0.12)',
                       border: '1px solid rgba(255, 71, 87, 0.3)',
-                      fontSize: '0.74rem',
+                      fontSize: '0.76rem',
                       color: 'var(--accent-red)',
                       fontWeight: 650,
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '0.4rem',
+                      gap: '0.45rem',
                     }}
                   >
-                    <AlertTriangle size={13} />
+                    <AlertTriangle size={15} style={{ minWidth: '15px' }} />
                     <span>
                       Deficit in {formattedMonthTitle.split(' ')[0]}:{' '}
                       {reelsShort > 0 && `${reelsShort} reel${reelsShort > 1 ? 's' : ''}`}
