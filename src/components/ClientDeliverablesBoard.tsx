@@ -808,8 +808,8 @@ export function ClientDeliverablesBoard({
       <div
         className="glass-panel"
         style={{
-          padding: '1rem 1.15rem',
-          borderRadius: '20px',
+          padding: '1.2rem 1.4rem',
+          borderRadius: '24px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -969,14 +969,14 @@ export function ClientDeliverablesBoard({
         <div
           className="glass-panel"
           style={{
-            padding: '0.95rem 1.05rem',
-            borderRadius: '16px',
+            padding: '1.1rem 1.25rem',
+            borderRadius: '18px',
             border: '1px solid var(--border-subtle)',
             background: 'var(--bg-card)',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            minHeight: '96px',
+            minHeight: '100px',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -988,13 +988,13 @@ export function ClientDeliverablesBoard({
               Active
             </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.45rem', marginTop: '0.35rem' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.45rem', marginTop: '0.4rem' }}>
             <span className="tabular-numbers" style={{ fontSize: '1.75rem', fontWeight: 850, color: 'var(--text-main)', lineHeight: 1 }}>
               {stats.totalClients}
             </span>
             <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>in {formattedMonthTitle.split(' ')[0]}</span>
           </div>
-          <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', marginTop: '0.25rem' }}>
+          <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', marginTop: '0.3rem' }}>
             All agency clients monitored
           </div>
         </div>
@@ -1003,14 +1003,14 @@ export function ClientDeliverablesBoard({
         <div
           className="glass-panel"
           style={{
-            padding: '0.95rem 1.05rem',
-            borderRadius: '16px',
+            padding: '1.1rem 1.25rem',
+            borderRadius: '18px',
             border: '1px solid rgba(139, 92, 246, 0.3)',
             background: 'rgba(139, 92, 246, 0.05)',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            minHeight: '96px',
+            minHeight: '100px',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -1022,7 +1022,7 @@ export function ClientDeliverablesBoard({
               {stats.targetReels > 0 ? Math.round((stats.completedReels / stats.targetReels) * 100) : 100}%
             </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem', marginTop: '0.35rem' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem', marginTop: '0.4rem' }}>
             <span className="tabular-numbers" style={{ fontSize: '1.75rem', fontWeight: 850, color: 'var(--accent-purple, #8b5cf6)', lineHeight: 1 }}>
               {stats.completedReels}
             </span>
@@ -1031,7 +1031,7 @@ export function ClientDeliverablesBoard({
             </span>
           </div>
           {/* Mini progress bar */}
-          <div style={{ width: '100%', height: '4px', borderRadius: '999px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden', marginTop: '0.35rem' }}>
+          <div style={{ width: '100%', height: '4px', borderRadius: '999px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden', marginTop: '0.4rem' }}>
             <div
               style={{
                 width: `${stats.targetReels > 0 ? Math.min(100, Math.round((stats.completedReels / stats.targetReels) * 100)) : 100}%`,
@@ -1048,14 +1048,14 @@ export function ClientDeliverablesBoard({
         <div
           className="glass-panel"
           style={{
-            padding: '0.95rem 1.05rem',
-            borderRadius: '16px',
+            padding: '1.1rem 1.25rem',
+            borderRadius: '18px',
             border: '1px solid rgba(6, 182, 212, 0.3)',
             background: 'rgba(6, 182, 212, 0.05)',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            minHeight: '96px',
+            minHeight: '100px',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -1067,7 +1067,7 @@ export function ClientDeliverablesBoard({
               {stats.targetGraphics > 0 ? Math.round((stats.completedGraphics / stats.targetGraphics) * 100) : 100}%
             </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem', marginTop: '0.35rem' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.35rem', marginTop: '0.4rem' }}>
             <span className="tabular-numbers" style={{ fontSize: '1.75rem', fontWeight: 850, color: 'var(--accent-theme)', lineHeight: 1 }}>
               {stats.completedGraphics}
             </span>
@@ -1076,7 +1076,7 @@ export function ClientDeliverablesBoard({
             </span>
           </div>
           {/* Mini progress bar */}
-          <div style={{ width: '100%', height: '4px', borderRadius: '999px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden', marginTop: '0.35rem' }}>
+          <div style={{ width: '100%', height: '4px', borderRadius: '999px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden', marginTop: '0.4rem' }}>
             <div
               style={{
                 width: `${stats.targetGraphics > 0 ? Math.min(100, Math.round((stats.completedGraphics / stats.targetGraphics) * 100)) : 100}%`,
@@ -1093,14 +1093,14 @@ export function ClientDeliverablesBoard({
         <div
           className="glass-panel"
           style={{
-            padding: '0.95rem 1.05rem',
-            borderRadius: '16px',
+            padding: '1.1rem 1.25rem',
+            borderRadius: '18px',
             border: `1px solid ${stats.lackingCount > 0 ? 'rgba(255, 71, 87, 0.35)' : 'rgba(16, 185, 129, 0.35)'}`,
             background: stats.lackingCount > 0 ? 'rgba(255, 71, 87, 0.06)' : 'rgba(16, 185, 129, 0.06)',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            minHeight: '96px',
+            minHeight: '100px',
           }}
         >
           <div style={{ fontSize: '0.72rem', color: stats.lackingCount > 0 ? 'var(--accent-red)' : 'var(--accent-green)', fontWeight: 750, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
@@ -1200,8 +1200,8 @@ export function ClientDeliverablesBoard({
                 key={c.id}
                 className="glass-panel"
                 style={{
-                  padding: '1.15rem 1rem',
-                  borderRadius: '20px',
+                  padding: '1.35rem',
+                  borderRadius: '22px',
                   background: 'var(--bg-card)',
                   border: isAllDone
                     ? '1.5px solid rgba(16, 185, 129, 0.45)'
@@ -1211,7 +1211,7 @@ export function ClientDeliverablesBoard({
                   boxShadow: 'inset 1.5px 1.5px 3px var(--clay-highlight), 0 10px 24px -4px var(--clay-drop-shadow)',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '1rem',
+                  gap: '1.1rem',
                   position: 'relative',
                 }}
               >
@@ -1327,14 +1327,14 @@ export function ClientDeliverablesBoard({
                   {/* 1. Reels Tracker Box */}
                   <div
                     style={{
-                      padding: '0.85rem',
-                      borderRadius: '14px',
+                      padding: '0.95rem',
+                      borderRadius: '16px',
                       background: 'var(--support-pill)',
                       border: '1px solid var(--border-subtle)',
                       boxShadow: 'inset 1px 1px 2px var(--clay-highlight)',
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: '0.55rem',
+                      gap: '0.6rem',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -1424,14 +1424,14 @@ export function ClientDeliverablesBoard({
                   {/* 2. Graphic Posts Tracker Box */}
                   <div
                     style={{
-                      padding: '0.85rem',
-                      borderRadius: '14px',
+                      padding: '0.95rem',
+                      borderRadius: '16px',
                       background: 'var(--support-pill)',
                       border: '1px solid var(--border-subtle)',
                       boxShadow: 'inset 1px 1px 2px var(--clay-highlight)',
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: '0.55rem',
+                      gap: '0.6rem',
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

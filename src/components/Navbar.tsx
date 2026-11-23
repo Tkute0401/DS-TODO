@@ -127,9 +127,9 @@ export function Navbar({
       boxShadow: '0 4px 20px -2px rgba(45, 39, 36, 0.05)',
     }}>
       <div style={{
-        maxWidth: '1560px',
+        maxWidth: '1080px',
         margin: '0 auto',
-        padding: '0.6rem 0.75rem',
+        padding: '0.65rem 1.25rem',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',

@@ -687,7 +687,7 @@ export default function App() {
       />
 
       {/* 3. Main Workspace Container */}
-      <main className="main-workspace-container" style={{ flex: 1, maxWidth: '1560px', width: '100%', margin: '0 auto', padding: '1.25rem 0.75rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      <main className="main-workspace-container" style={{ flex: 1, maxWidth: '1080px', width: '100%', margin: '0 auto', padding: '1.5rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         
         {/* Today's Flow & Progress Strip */}
         {viewMode !== 'clients' && (
